@@ -21,7 +21,7 @@ done
 echo "Banco de dados disponível!"
 
 echo "Aplicando schema (db/init.sql)..."
-PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -v ON_ERROR_STOP=1 -f db/init.sql
+PGPASSWORD="$DB_PASS" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -v ON_ERROR_STOP=1 -f db/init.sql
 
 echo "Iniciando o servidor Gunicorn na porta ${PORT:-8003}..."
 exec gunicorn --bind 0.0.0.0:"${PORT:-8003}" app:app
