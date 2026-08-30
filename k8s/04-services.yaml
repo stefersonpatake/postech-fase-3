@@ -1,0 +1,69 @@
+# ─── AUTH SERVICE ───────────────────────────────────────────
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-service
+  namespace: auth
+spec:
+  type: ClusterIP
+  selector:
+    app: auth-service
+  ports:
+    - port: 8001
+      targetPort: 8001
+---
+# ─── FLAG SERVICE ────────────────────────────────────────────
+apiVersion: v1
+kind: Service
+metadata:
+  name: flag-service
+  namespace: flags
+spec:
+  type: ClusterIP
+  selector:
+    app: flag-service
+  ports:
+    - port: 8002
+      targetPort: 8002
+---
+# ─── TARGETING SERVICE ───────────────────────────────────────
+apiVersion: v1
+kind: Service
+metadata:
+  name: targeting-service
+  namespace: targeting
+spec:
+  type: ClusterIP
+  selector:
+    app: targeting-service
+  ports:
+    - port: 8003
+      targetPort: 8003
+---
+# ─── EVALUATION SERVICE ──────────────────────────────────────
+apiVersion: v1
+kind: Service
+metadata:
+  name: evaluation-service
+  namespace: evaluation
+spec:
+  type: ClusterIP
+  selector:
+    app: evaluation-service
+  ports:
+    - port: 8004
+      targetPort: 8004
+---
+# ─── ANALYTICS SERVICE ───────────────────────────────────────
+apiVersion: v1
+kind: Service
+metadata:
+  name: analytics-service
+  namespace: analytics
+spec:
+  type: ClusterIP
+  selector:
+    app: analytics-service
+  ports:
+    - port: 8005
+      targetPort: 8005

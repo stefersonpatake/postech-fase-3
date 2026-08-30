@@ -1,0 +1,66 @@
+# ─── AUTH SERVICE ───────────────────────────────────────────
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: auth-service-config
+  namespace: auth
+data:
+  APP_PORT: "8001"
+  AWS_REGION: "us-east-1"
+  DB_PORT: "5432"
+  DB_NAME: "postgres"
+---
+# ─── FLAG SERVICE ────────────────────────────────────────────
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: flag-service-config
+  namespace: flags
+data:
+  APP_PORT: "8002"
+  AWS_REGION: "us-east-1"
+  DB_PORT: "5432"
+  DB_NAME: "postgres"
+  AUTH_SERVICE_URL: "http://auth-service.auth.svc.cluster.local:8001"
+---
+# ─── TARGETING SERVICE ───────────────────────────────────────
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: targeting-service-config
+  namespace: targeting
+data:
+  APP_PORT: "8003"
+  AWS_REGION: "us-east-1"
+  DB_PORT: "5432"
+  DB_NAME: "postgres"
+  AUTH_SERVICE_URL: "http://auth-service.auth.svc.cluster.local:8001"
+  FLAG_SERVICE_URL: "http://flag-service.flags.svc.cluster.local:8002"
+---
+# ─── EVALUATION SERVICE ──────────────────────────────────────
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: evaluation-service-config
+  namespace: evaluation
+data:
+  APP_PORT: "8004"
+  AWS_REGION: "us-east-1"
+  AWS_SQS_URL: "https://sqs.us-east-1.amazonaws.com/785619296841/toggle-master-events"
+  REDIS_URL: "rediss://evaluation-service-6fliia.serverless.use1.cache.amazonaws.com:6380" 
+  AUTH_SERVICE_URL: "http://auth-service.auth.svc.cluster.local:8001"
+  FLAG_SERVICE_URL: "http://flag-service.flags.svc.cluster.local:8002"
+  TARGETING_SERVICE_URL: "http://targeting-service.targeting.svc.cluster.local:8003"
+---
+# ─── ANALYTICS SERVICE ───────────────────────────────────────
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: analytics-service-config
+  namespace: analytics
+data:
+  APP_PORT: "8005"
+  AWS_REGION: "us-east-1"
+  AWS_SQS_URL: "https://sqs.us-east-1.amazonaws.com/785619296841/toggle-master-events"
+  AWS_DYNAMODB_TABLE: "ToggleMasterAnalytics"
+  DYNAMODB_TABLE_NAME: "ToggleMasterAnalytics"
