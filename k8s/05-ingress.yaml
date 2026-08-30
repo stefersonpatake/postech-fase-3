@@ -1,11 +1,27 @@
-# nginx-ingress-consolidated.yaml
+# 05-ingress.yaml (corrigido)
+#
+# PROBLEMA ORIGINAL: um único Ingress no namespace "ingress" apontava para Services
+# (auth-service, flag-service, etc.) que vivem em OUTROS namespaces. Isso não
+# funciona: no Kubernetes, um Ingress só pode referenciar Services do MESMO
+# namespace em que ele está definido.
+#
+# CORREÇÃO: um Ingress por serviço, cada um dentro do namespace do próprio serviço.
+# Todos usam a mesma ingressClassName ("nginx"), então o controller ingress-nginx
+# continua expondo todas as rotas por um único endereço externo (o roteamento por
+# path funciona normalmente entre Ingress de namespaces diferentes).
+#
+# Pré-requisito (fora deste arquivo): o controller ingress-nginx precisa estar
+# instalado no cluster (ex: via Helm) com a IngressClass "nginx" já criada.
+
+# ─── AUTH ─────────────────────────────────────────────────────
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: nginx-ingress-consolidated
-  namespace: ingress
+  name: auth-ingress
+  namespace: auth
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/use-regex: "true"
 spec:
   ingressClassName: nginx
   rules:
@@ -18,6 +34,21 @@ spec:
             name: auth-service
             port:
               number: 8001
+---
+# ─── FLAGS ────────────────────────────────────────────────────
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: flags-ingress
+  namespace: flags
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/use-regex: "true"
+spec:
+  ingressClassName: nginx
+  rules:
+  - http:
+      paths:
       - path: /flags(/|$)(.*)
         pathType: ImplementationSpecific
         backend:
@@ -25,6 +56,21 @@ spec:
             name: flag-service
             port:
               number: 8002
+---
+# ─── TARGETING ────────────────────────────────────────────────
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: targeting-ingress
+  namespace: targeting
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/use-regex: "true"
+spec:
+  ingressClassName: nginx
+  rules:
+  - http:
+      paths:
       - path: /targeting(/|$)(.*)
         pathType: ImplementationSpecific
         backend:
@@ -32,6 +78,21 @@ spec:
             name: targeting-service
             port:
               number: 8003
+---
+# ─── EVALUATION ───────────────────────────────────────────────
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: evaluation-ingress
+  namespace: evaluation
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/use-regex: "true"
+spec:
+  ingressClassName: nginx
+  rules:
+  - http:
+      paths:
       - path: /evaluation(/|$)(.*)
         pathType: ImplementationSpecific
         backend:
@@ -39,6 +100,21 @@ spec:
             name: evaluation-service
             port:
               number: 8004
+---
+# ─── ANALYTICS ────────────────────────────────────────────────
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: analytics-ingress
+  namespace: analytics
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/use-regex: "true"
+spec:
+  ingressClassName: nginx
+  rules:
+  - http:
+      paths:
       - path: /analytics(/|$)(.*)
         pathType: ImplementationSpecific
         backend:
