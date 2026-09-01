@@ -1,18 +1,3 @@
-# 05-ingress.yaml (corrigido)
-#
-# PROBLEMA ORIGINAL: um único Ingress no namespace "ingress" apontava para Services
-# (auth-service, flag-service, etc.) que vivem em OUTROS namespaces. Isso não
-# funciona: no Kubernetes, um Ingress só pode referenciar Services do MESMO
-# namespace em que ele está definido.
-#
-# CORREÇÃO: um Ingress por serviço, cada um dentro do namespace do próprio serviço.
-# Todos usam a mesma ingressClassName ("nginx"), então o controller ingress-nginx
-# continua expondo todas as rotas por um único endereço externo (o roteamento por
-# path funciona normalmente entre Ingress de namespaces diferentes).
-#
-# Pré-requisito (fora deste arquivo): o controller ingress-nginx precisa estar
-# instalado no cluster (ex: via Helm) com a IngressClass "nginx" já criada.
-
 # ─── AUTH ─────────────────────────────────────────────────────
 apiVersion: networking.k8s.io/v1
 kind: Ingress

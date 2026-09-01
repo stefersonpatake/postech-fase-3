@@ -15,7 +15,7 @@ Usar **"Configuração personalizada"** (EKS clássico com *Managed Node Groups*
 
 ## Criação do Cluster
 
-Assistente do console em 6 etapas:
+Usei o assistente do console em 6 etapas:
 
 | Etapa | Configuração |
 |-------|--------------|
@@ -32,25 +32,14 @@ Assistente do console em 6 etapas:
 - **AMI:** Amazon Linux 2023
 - **Capacidade:** On-Demand
 - **Instância:** `t3.medium` — disco 20 GiB
-- **Escala:** mín. 1 / máx. 2 / desejado 1; reparo automático habilitado
+- **Escala:** mín. 1 / máx. 3 / desejado 1; reparo automático habilitado
 - **Rede:** todas as subnets; sem acesso remoto (SSH)
 - Aguardar (~5–10 min) até **Ativo**.
 
-## Conexão e teste
+## Resultado:
+Cluster EKS + 1 node `t3.medium` ativos, `kubectl` conectado, `nginx` rodando
 
-```bash
-aws eks update-kubeconfig --region us-east-1 --name serious-drummer-player
-
-kubectl get nodes        # 1 nó Ready, v1.36.3-eks
-kubectl create deployment nginx --image=nginx
-kubectl get pods         # nginx Running 1/1
-kubectl expose deployment nginx --port=80 --type=LoadBalancer
-kubectl get svc          # próximo passo: pegar o EXTERNAL-IP
-```
-
-**Resultado:** cluster EKS + 1 node `t3.medium` ativos, `kubectl` conectado, `nginx` rodando
-
-Internet
+```Internet
     ↓
 Load Balancer (ELB)
     ↓
@@ -61,6 +50,7 @@ Pod (nginx - Running)
 Node (t3.medium - EC2)
     ↓
 Cluster EKS (Kubernetes 1.36)
+```
 
 ---
 
@@ -69,23 +59,27 @@ Cluster EKS (Kubernetes 1.36)
 Durante o deploy no EKS foram identificados e corrigidos os seguintes problemas que impediam
 o funcionamento correto da arquitetura de microsserviços:
 
-### 1. Health checks com porta incorreta
+### 1. Build das imagens para a arquitetura correta
+
+Foi necessário efetuar build usando o parâmetro `--platform linux/amd64`, igualando ao ambiente do cluster.
+
+### 2. Health checks com porta incorreta
 
 O `evaluation-service` expõe a aplicação na porta **8004**, mas os probes de *liveness*/*readiness*
 apontavam para **3000**, causando `CrashLoopBackOff`.
 
-### 2. Conexão TLS ausente com o Redis (ElastiCache Serverless)
+### 3. Conexão TLS ausente com o Redis (ElastiCache Serverless)
 
 A variável `REDIS_URL` usava o esquema `redis://` na porta `6379`, mas o ElastiCache Serverless
 exige TLS. Corrigida para `rediss://...:6380`. Foi necessário ajustar tanto o **ConfigMap** quanto
 um **Secret** que sobrescrevia esse valor com a configuração antiga.
 
-### 3. Security Group bloqueando tráfego para o ElastiCache
+### 4. Security Group bloqueando tráfego para o ElastiCache
 
 Não havia regra de *ingress* liberando a porta `6380` entre o Security Group dos nós EKS e o do
 ElastiCache. Regra adicionada via console AWS.
 
-### 4. Falha causada por auto-instrumentação OpenTelemetry
+### 5. Falha causada por auto-instrumentação OpenTelemetry
 
 A injeção automática do OTel Python (`v0.19.0`) era incompatível com o runtime Python 3.9 dos
 serviços, causando crash. Desativada via annotations nos serviços `analytics-service`,

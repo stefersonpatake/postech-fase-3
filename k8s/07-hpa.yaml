@@ -1,28 +1,3 @@
-# 07-hpa.yaml
-#
-# HPA (Horizontal Pod Autoscaler) baseado em CPU para evaluation-service e
-# analytics-service.
-#
-# Por que só esses dois: são os serviços que consomem a fila SQS
-# (toggle-master-events). O Academy Lab não permite escalar com base em uma
-# métrica externa de verdade (custom/external metrics via CloudWatch exigiriam
-# IAM role própria para o adapter, que não é possível criar aqui). O workaround
-# é: quando a fila SQS enche, esses serviços processam mais mensagens, o uso de
-# CPU sobe, e o HPA reage a isso escalando os pods por utilização de CPU.
-#
-# Usa autoscaling/v2 (API atual). O campo equivalente ao antigo
-# "targetCPUUtilizationPercentage: 70" da autoscaling/v1 aqui é
-# "averageUtilization: 70" dentro de metrics[].resource.target.
-#
-# PRÉ-REQUISITOS para o HPA funcionar de verdade:
-#   1) O metrics-server precisa estar instalado no cluster (EKS não vem com ele
-#      por padrão). Sem isso, o HPA fica com TARGETS "<unknown>/70%" e nunca
-#      escala. Instalação padrão:
-#        kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
-#   2) Os Deployments precisam ter requests.cpu definido (já está em
-#      03-deployments.yaml: 100m para os dois serviços) - é sobre esse valor
-#      que a porcentagem de utilização é calculada.
-
 # ─── EVALUATION SERVICE ───────────────────────────────────────
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
