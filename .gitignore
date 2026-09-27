@@ -1,3 +1,11 @@
 .env
 k8s/01-secrets.yaml.bkp
 expose-ngrok.sh
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+crash.log
+*.tfplan
