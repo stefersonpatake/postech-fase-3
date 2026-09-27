@@ -10,7 +10,7 @@ ToggleMaster (auth, flag, targeting, evaluation, analytics) com IaC, CI/CD, DevS
 | Tema | Decisão | Motivo |
 |---|---|---|
 | Conta AWS | AWS Academy (Opção A) | Terraform **não cria IAM**; usa a `LabRole` via `data "aws_iam_role"` |
-| Estado Terraform | Backend S3 com `use_lockfile = true` | Requisito do desafio; lock nativo sem DynamoDB |
+| Estado Terraform | Backend S3 com `use_lockfile = true`; bucket criado por `terraform/bootstrap/bootstrap.sh` (AWS CLI) | Requisito do desafio; lock nativo sem DynamoDB. SCP do Academy impede gerenciar `aws_s3_bucket` via Terraform (ver ETAPA-1) |
 | Camadas Terraform | `bootstrap/` → `infra/` → `platform/` | States separados: o provider helm/kubernetes depende do cluster já existir |
 | Módulos | Módulos próprios (`network`, `eks`, `rds`, `elasticache`, `dynamodb`, `sqs`, `ecr`, `secrets`) | Módulos da comunidade criam IAM por padrão e falham no Academy |
 | Segredos | `random_password` → AWS Secrets Manager → External Secrets Operator (ESO) | Nenhuma credencial em arquivo/git |
@@ -30,7 +30,7 @@ ToggleMaster (auth, flag, targeting, evaluation, analytics) com IaC, CI/CD, DevS
 .
 ├── auth-service/ flag-service/ targeting-service/ evaluation-service/ analytics-service/
 ├── terraform/
-│   ├── bootstrap/          # bucket S3 do state (state local, único caso)
+│   ├── bootstrap/          # bootstrap.sh: bucket S3 do state (AWS CLI)
 │   ├── infra/              # VPC, EKS, RDS, Redis, DynamoDB, SQS, ECR, Secrets Manager
 │   ├── platform/           # ALB Controller, ESO, ArgoCD, credentials-refresher
 │   └── modules/
@@ -49,7 +49,7 @@ Cada etapa tem um documento próprio `docs/ETAPA-N.md` com o que foi feito e com
 | # | Etapa | Entregas | Como validar | Status |
 |---|---|---|---|---|
 | 0 | Pré-requisitos | Ferramentas instaladas, SonarCloud, estrutura de pastas, script de sync de secrets | `terraform version`, `gh auth status`, `aws sts get-caller-identity` | Concluída |
-| 1 | Backend remoto | `terraform/bootstrap` cria bucket S3 (versionado, criptografado) | `aws s3 ls`; state das demais camadas no S3 | Pendente |
+| 1 | Backend remoto | `terraform/bootstrap/bootstrap.sh` cria bucket S3 (versionado, criptografado); backend em `infra/` | `aws s3 ls`; state das demais camadas no S3; teste de lock | Concluída |
 | 2 | Rede + ECR | Módulos `network` (VPC, subnets públicas/privadas, IGW, NAT, route tables) e `ecr` (5 repos) | `terraform plan/apply`, `aws ec2 describe-vpcs`, `aws ecr describe-repositories` | Pendente |
 | 3 | EKS | Módulo `eks` (cluster + node group com LabRole, access entry, addons) | `kubectl get nodes` | Pendente |
 | 4 | Dados + mensageria | 3 RDS PostgreSQL, ElastiCache Redis, DynamoDB `ToggleMasterAnalytics`, SQS, secrets no Secrets Manager | `aws rds describe-db-instances`, pod de teste com `psql`/`redis-cli` | Pendente |
