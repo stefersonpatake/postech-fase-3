@@ -50,7 +50,7 @@ Cada etapa tem um documento próprio `docs/ETAPA-N.md` com o que foi feito e com
 |---|---|---|---|---|
 | 0 | Pré-requisitos | Ferramentas instaladas, SonarCloud, estrutura de pastas, script de sync de secrets | `terraform version`, `gh auth status`, `aws sts get-caller-identity` | Concluída |
 | 1 | Backend remoto | `terraform/bootstrap/bootstrap.sh` cria bucket S3 (versionado, criptografado); backend em `infra/` | `aws s3 ls`; state das demais camadas no S3; teste de lock | Concluída |
-| 2 | Rede + ECR | Módulos `network` (VPC, subnets públicas/privadas, IGW, NAT, route tables) e `ecr` (5 repos) | `terraform plan/apply`, `aws ec2 describe-vpcs`, `aws ecr describe-repositories` | Pendente |
+| 2 | Rede + ECR | Módulos `network` (VPC, subnets públicas/privadas, IGW, NAT, route tables) e `ecr` (5 repos) | `terraform plan/apply`, `aws ec2 describe-vpcs`, `aws ecr describe-repositories` | Concluída |
 | 3 | EKS | Módulo `eks` (cluster + node group com LabRole, access entry, addons) | `kubectl get nodes` | Pendente |
 | 4 | Dados + mensageria | 3 RDS PostgreSQL, ElastiCache Redis, DynamoDB `ToggleMasterAnalytics`, SQS, secrets no Secrets Manager | `aws rds describe-db-instances`, pod de teste com `psql`/`redis-cli` | Pendente |
 | 5 | Plataforma | ALB Controller, ESO + `ClusterSecretStore`, ArgoCD, CronJob de credenciais | Pods em `argocd` e `external-secrets`; UI do ArgoCD | Pendente |
