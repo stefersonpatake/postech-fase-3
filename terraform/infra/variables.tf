@@ -27,3 +27,21 @@ variable "services" {
   type        = set(string)
   default     = ["auth-service", "flag-service", "targeting-service", "evaluation-service", "analytics-service"]
 }
+
+variable "kubernetes_version" {
+  description = "Versão do Kubernetes do EKS"
+  type        = string
+  default     = "1.36"
+}
+
+variable "node_instance_types" {
+  description = "Tipos de instância dos nós"
+  type        = list(string)
+  default     = ["t3.medium"]
+}
+
+variable "node_desired_size" {
+  description = "Quantidade de nós (ArgoCD + ESO + ALB Controller + 5 serviços)"
+  type        = number
+  default     = 3
+}
