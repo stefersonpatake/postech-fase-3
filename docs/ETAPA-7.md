@@ -162,7 +162,7 @@ gh pr create --fill
 | Imagens novas (Trivy, CRITICAL) | ✅ 0 em todas as 5 (antes: 1 nas Go, 15 nas Python) |
 | Imagens novas funcionando (`docker compose`) | ✅ `/health` 200 nos 5; usuário `app`; Python 3.11; 401 sem chave, flag 201, regra 201, `flag_name` inválido 400 |
 | Regra de bloqueio do SCA | ✅ `PyYAML==5.3.1` → Trivy acusa CVE-2020-14343 CRITICAL (simulado localmente) |
-| Push no ECR | ⏳ só ocorre em push na `main`: será exercitado no merge deste PR |
+| Push no ECR | ✅ no merge do PR #8 os 5 pipelines publicaram `v1.0.0-3d665f4` nos 5 repositórios |
 
 ## Observações
 

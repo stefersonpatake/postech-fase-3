@@ -1,5 +1,6 @@
 # Pipeline reutilizável dos microsserviços em Python (flag, targeting, analytics).
-# Estágios: Build & Test -> Lint -> Security (SCA + SAST) -> Docker (build, scan, push).
+# Estágios: Build & Test -> Lint -> Security (SCA + SAST) -> Docker (build, scan, push)
+# -> GitOps (atualiza a tag da imagem em gitops/).
 name: CI Python (reutilizável)
 
 on:
@@ -130,9 +131,9 @@ jobs:
           docker run --rm -v /var/run/docker.sock:/var/run/docker.sock "$TRIVY_IMAGE" \
             image --scanners vuln --severity CRITICAL --ignore-unfixed --exit-code 1 "$LOCAL_IMAGE"
 
-      # Daqui em diante só em push na main: Pull Requests constroem e escaneiam, mas não publicam.
+      # Daqui em diante só na main (push ou execução manual): Pull Requests constroem e escaneiam, mas não publicam.
       - name: Credenciais AWS
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         uses: aws-actions/configure-aws-credentials@v6
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -142,18 +143,76 @@ jobs:
 
       - name: Login no ECR
         id: ecr
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Push para o ECR (tag = v1.0.0-<hash do commit>)
         id: push
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         env:
           REGISTRY: ${{ steps.ecr.outputs.registry }}
         run: |
           TAG="v1.0.0-${GITHUB_SHA::7}"
-          IMAGE="$REGISTRY/togglemaster/${{ inputs.service }}:$TAG"
-          docker tag "$LOCAL_IMAGE" "$IMAGE"
-          docker push "$IMAGE"
+          REPOSITORY="togglemaster/${{ inputs.service }}"
+          IMAGE="$REGISTRY/$REPOSITORY:$TAG"
+
+          # As tags são imutáveis no ECR: ao reexecutar o pipeline do mesmo commit,
+          # a imagem já existe e o push é pulado.
+          if aws ecr describe-images --repository-name "$REPOSITORY" --image-ids imageTag="$TAG" >/dev/null 2>&1; then
+            echo "Imagem $IMAGE já existe no ECR; push ignorado."
+          else
+            docker tag "$LOCAL_IMAGE" "$IMAGE"
+            docker push "$IMAGE"
+          fi
+
           echo "image_tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "### Imagem publicada: \`$IMAGE\`" >> "$GITHUB_STEP_SUMMARY"
+
+  # Entrega contínua via GitOps: o CI não aplica nada no cluster. Ele só registra no
+  # Git qual imagem deve estar rodando; o ArgoCD detecta o commit e sincroniza.
+  gitops:
+    name: GitOps - atualizar tag da imagem
+    runs-on: ubuntu-latest
+    needs: docker
+    if: needs.docker.outputs.image_tag != ''
+    permissions:
+      contents: write
+    env:
+      SERVICE: ${{ inputs.service }}
+      TAG: ${{ needs.docker.outputs.image_tag }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+
+      - name: Atualizar newTag em gitops/apps/${{ inputs.service }}/kustomization.yaml
+        run: |
+          FILE="gitops/apps/$SERVICE/kustomization.yaml"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # Vários serviços podem terminar ao mesmo tempo e disputar o push na main.
+          # A cada tentativa: parte do estado mais recente da main, altera e envia.
+          for attempt in 1 2 3 4 5 6; do
+            git fetch --quiet origin main
+            git reset --quiet --hard origin/main
+
+            sed -i -E "s|^([[:space:]]*newTag:).*|\1 $TAG|" "$FILE"
+
+            if git diff --quiet; then
+              echo "$FILE já está em $TAG; nada a fazer."
+              exit 0
+            fi
+
+            git commit --quiet -am "gitops($SERVICE): imagem $TAG"
+            if git push --quiet origin HEAD:main; then
+              echo "### GitOps: \`$SERVICE\` → \`$TAG\` ($(git rev-parse --short HEAD))" >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+
+            echo "Push rejeitado (a main avançou). Tentativa $attempt de 6..."
+            sleep $((attempt * 4))
+          done
+
+          echo "Não foi possível atualizar $FILE após 6 tentativas."
+          exit 1
