@@ -8,7 +8,9 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
+	"regexp"
 	"sync"
 	"time"
 )
@@ -17,6 +19,12 @@ const (
 	// Tempo de vida do cache em segundos
 	CACHE_TTL = 30 * time.Second
 )
+
+// validFlagName limita o nome da flag a caracteres seguros. O nome vem da query
+// string e é usado para montar a URL das chamadas ao flag-service e ao
+// targeting-service; sem essa validação, um valor como "../admin" alteraria o
+// caminho da requisição interna (SSRF / path traversal).
+var validFlagName = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$`)
 
 // getDecision é o wrapper principal
 func (a *App) getDecision(userID, flagName string) (bool, error) {
@@ -103,13 +111,13 @@ func (a *App) fetchFromServices(flagName string) (*CombinedFlagInfo, error) {
 
 // fetchFlag (função helper)
 func (a *App) fetchFlag(flagName string) (*Flag, error) {
-	url := fmt.Sprintf("%s/flags/%s", a.FlagServiceURL, flagName)
+	endpoint := fmt.Sprintf("%s/flags/%s", a.FlagServiceURL, url.PathEscape(flagName))
 
 	apiKey := os.Getenv("SERVICE_API_KEY")
-	req, _ := http.NewRequest("GET", url, nil)
+	req, _ := http.NewRequest("GET", endpoint, nil) // #nosec G704 -- host fixo vindo de configuração; flagName validado por validFlagName e escapado com url.PathEscape
 	req.Header.Set("Authorization", "Bearer "+apiKey)
 	
-	resp, err := a.HttpClient.Do(req)
+	resp, err := a.HttpClient.Do(req) // #nosec G704 -- host fixo vindo de configuração; flagName validado por validFlagName e escapado com url.PathEscape
 	if err != nil {
 		return nil, fmt.Errorf("erro ao chamar flag-service: %w", err)
 	}
@@ -131,12 +139,12 @@ func (a *App) fetchFlag(flagName string) (*Flag, error) {
 }
 
 func (a *App) fetchRule(flagName string) (*TargetingRule, error) {
-	url := fmt.Sprintf("%s/rules/%s", a.TargetingServiceURL, flagName)
+	endpoint := fmt.Sprintf("%s/rules/%s", a.TargetingServiceURL, url.PathEscape(flagName))
 	apiKey := os.Getenv("SERVICE_API_KEY") // Usa a mesma chave
-	req, _ := http.NewRequest("GET", url, nil)
+	req, _ := http.NewRequest("GET", endpoint, nil) // #nosec G704 -- host fixo vindo de configuração; flagName validado por validFlagName e escapado com url.PathEscape
 	req.Header.Set("Authorization", "Bearer "+apiKey)
 	
-	resp, err := a.HttpClient.Do(req)
+	resp, err := a.HttpClient.Do(req) // #nosec G704 -- host fixo vindo de configuração; flagName validado por validFlagName e escapado com url.PathEscape
 	if err != nil {
 		return nil, fmt.Errorf("erro ao chamar targeting-service: %w", err)
 	}

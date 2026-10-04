@@ -19,6 +19,10 @@ RUN chmod +x entrypoint.sh
 COPY app.py .
 COPY db/ ./db/
 
+# Processo sem privilégios de root dentro do container.
+RUN useradd --system --uid 10001 --no-create-home app
+USER app
+
 EXPOSE 8002
 
 ENTRYPOINT ["sh", "./entrypoint.sh"]

@@ -30,6 +30,11 @@ func (a *App) evaluationHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !validFlagName.MatchString(flagName) {
+		http.Error(w, `{"error": "flag_name inválido"}`, http.StatusBadRequest)
+		return
+	}
+
 	// 2. Obter a decisão (lógica de cache/serviço está em evaluator.go)
 	result, err := a.getDecision(userID, flagName)
 	if err != nil {

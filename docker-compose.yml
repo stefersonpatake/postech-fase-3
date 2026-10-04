@@ -88,7 +88,7 @@ services:
       - DB_HOST=postgres-auth
       - DB_PORT=5432
       - DB_USER=auth_user
-      - DB_PASSWORD=dev@321#
+      - DB_PASS=dev@321#
       - DB_NAME=auth_db
       - DATABASE_URL=host=postgres-auth port=5432 dbname=auth_db user=auth_user password=dev@321#
       - MASTER_KEY=admin-secreto-123
@@ -105,7 +105,7 @@ services:
       - DB_HOST=postgres-flags
       - DB_PORT=5432
       - DB_USER=flagapi_user
-      - DB_PASSWORD=dev@321#
+      - DB_PASS=dev@321#
       - DB_NAME=flagapi
       - DATABASE_URL=host=postgres-flags port=5432 dbname=flagapi user=flagapi_user password=dev@321#
       - AUTH_SERVICE_URL=http://auth-service:8001
@@ -124,7 +124,7 @@ services:
       - DB_HOST=postgres-flags
       - DB_PORT=5432
       - DB_USER=flagapi_user
-      - DB_PASSWORD=dev@321#
+      - DB_PASS=dev@321#
       - DB_NAME=targeting_db
       - DATABASE_URL=host=postgres-flags port=5432 dbname=targeting_db user=flagapi_user password=dev@321#
       - AUTH_SERVICE_URL=http://auth-service:8001

@@ -13,6 +13,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app.py .
 
+# Processo sem privilégios de root dentro do container.
+RUN useradd --system --uid 10001 --no-create-home app
+USER app
+
 EXPOSE 8005
 
 CMD gunicorn --bind 0.0.0.0:${PORT:-8005} app:app

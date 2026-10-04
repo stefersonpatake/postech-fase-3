@@ -23,6 +23,10 @@ COPY db/ ./db/
 COPY entrypoint.sh .
 RUN chmod +x entrypoint.sh
 
+# Processo sem privilégios de root dentro do container.
+RUN adduser -D -u 10001 app
+USER app
+
 EXPOSE 8001
 
 ENTRYPOINT ["sh", "./entrypoint.sh"]

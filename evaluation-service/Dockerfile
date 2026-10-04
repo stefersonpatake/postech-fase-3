@@ -18,6 +18,10 @@ WORKDIR /app
 
 COPY --from=builder /out/evaluation-service .
 
+# Processo sem privilégios de root dentro do container.
+RUN adduser -D -u 10001 app
+USER app
+
 EXPOSE 8004
 
 CMD ["./evaluation-service"]
