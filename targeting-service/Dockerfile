@@ -1,11 +1,13 @@
-FROM python:3.9-slim
+FROM python:3.11-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y --no-install-recommends postgresql-client \
+# "upgrade" aplica as correções de segurança publicadas depois da imagem base.
+RUN apt-get update && apt-get upgrade -y \
+    && apt-get install -y --no-install-recommends postgresql-client \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
@@ -16,6 +18,10 @@ RUN chmod +x entrypoint.sh
 
 COPY app.py .
 COPY db/ ./db/
+
+# Processo sem privilégios de root dentro do container.
+RUN useradd --system --uid 10001 --no-create-home app
+USER app
 
 EXPOSE 8003
 

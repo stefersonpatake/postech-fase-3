@@ -18,8 +18,8 @@ ToggleMaster (auth, flag, targeting, evaluation, analytics) com IaC, CI/CD, DevS
 | GitOps | Pasta `gitops/` no monorepo, Kustomize, ArgoCD `ApplicationSet` (uma Application por pasta em `gitops/apps/`) | Menos credenciais; CI commita com `GITHUB_TOKEN` |
 | Instalação ArgoCD/ESO/ALB | Terraform + provider helm (`terraform/platform`), versões de chart fixadas; ArgoCD acessado por port-forward | Tudo como código |
 | CI | Workflows reutilizáveis (Go e Python) + 5 callers com filtro de `paths` | Sem duplicação; cada serviço roda isolado |
-| SAST | gosec (Go) / bandit (Python) bloqueantes + SonarCloud (visualização) | Bloqueio controlado localmente; dashboard para a demo |
-| SCA / Container | Trivy `fs` e Trivy `image`, `--severity CRITICAL --exit-code 1` | Regra de bloqueio do desafio |
+| SAST | gosec (Go) / bandit (Python) bloqueando em severidade HIGH + SonarCloud em workflow próprio (repositório inteiro) | Bloqueio controlado no pipeline; painel e quality gate para a demo |
+| SCA / Container | Trivy `fs` e Trivy `image`, `--severity CRITICAL --exit-code 1` (imagem com `--ignore-unfixed`) | Regra de bloqueio do desafio |
 | Tag de imagem | `v1.0.0-<sha7>` | Formato pedido no desafio |
 | Credenciais no CI | GitHub Secrets `AWS_ACCESS_KEY_ID/SECRET/SESSION_TOKEN` | Academy não permite OIDC; atualizados por `scripts/sync-gh-secrets.sh` |
 | Ambiente | Novo, do zero (prefixo `togglemaster`) | Demonstra recriação do ambiente em minutos; recursos manuais da Fase 2 serão removidos |
@@ -54,7 +54,7 @@ Cada etapa tem um documento próprio `docs/ETAPA-N.md` com o que foi feito e com
 | 4 | Dados + mensageria | 3 RDS PostgreSQL, ElastiCache Redis, DynamoDB `ToggleMasterAnalytics`, SQS, secrets no Secrets Manager | `aws rds describe-db-instances`, `scripts/test-data-connectivity.sh` | Concluída |
 | 5 | Plataforma | ALB Controller, ESO + `ClusterSecretStore`, ArgoCD | Pods em `argocd` e `external-secrets`; UI do ArgoCD | Concluída |
 | 6 | GitOps | `k8s/` → `gitops/apps/*` em Kustomize, `ExternalSecret`, `ApplicationSet` com auto-sync/prune/self-heal, scripts de bootstrap | 5 apps *Synced/Healthy*; `scripts/test-services.sh` | Concluída (revalidar em `main` após o merge) |
-| 7 | CI DevSecOps | Testes unitários mínimos, lint, gosec/bandit, SonarCloud, Trivy fs/image, push ECR | PR com checks; imagem com tag nova no ECR | Pendente |
+| 7 | CI DevSecOps | Workflows reutilizáveis + 5 por serviço, testes unitários, lint, gosec/bandit, Trivy fs/image, SonarCloud, push ECR | PR com checks verdes; imagem com tag nova no ECR | Concluída (push no ECR validado no merge) |
 | 8 | Atualização de tag | Job final faz `kustomize edit set image` + commit em `gitops/` | Commit do bot → ArgoCD sincroniza → pod com nova tag | Pendente |
 | 9 | Demo e entrega | Roteiro do vídeo (falha de segurança → correção), README, custos, relatório, destroy | Ensaio completo do roteiro | Pendente |
 

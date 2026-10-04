@@ -9,3 +9,11 @@ expose-ngrok.sh
 !*.tfvars.example
 crash.log
 *.tfplan
+
+# Python
+__pycache__/
+.pytest_cache/
+.venv/
+
+# Relatórios de segurança gerados localmente
+*.sarif

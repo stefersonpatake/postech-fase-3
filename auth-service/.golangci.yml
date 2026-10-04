@@ -1,0 +1,13 @@
+version: "2"
+
+linters:
+  # Conjunto padrão do golangci-lint: errcheck, govet, ineffassign, staticcheck, unused.
+  default: standard
+  settings:
+    errcheck:
+      # Erros que não têm tratamento útil: a resposta já foi enviada ou o recurso
+      # está sendo encerrado.
+      exclude-functions:
+        - (*encoding/json.Encoder).Encode
+        - (io.Closer).Close
+        - (*database/sql.DB).Close
