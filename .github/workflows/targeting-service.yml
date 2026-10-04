@@ -13,13 +13,16 @@ on:
       - ".github/workflows/targeting-service.yml"
       - ".github/workflows/_ci-python.yml"
 
+  # Execução manual: republica a imagem e atualiza o GitOps (ex.: após recriar o ambiente).
+  workflow_dispatch:
+
 # Um novo commit no mesmo PR cancela a execução anterior; na main as execuções não são canceladas.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
-  contents: read
+  contents: write # o job de GitOps faz commit da nova tag em gitops/
 
 jobs:
   ci:

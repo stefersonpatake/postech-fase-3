@@ -54,8 +54,8 @@ Cada etapa tem um documento próprio `docs/ETAPA-N.md` com o que foi feito e com
 | 4 | Dados + mensageria | 3 RDS PostgreSQL, ElastiCache Redis, DynamoDB `ToggleMasterAnalytics`, SQS, secrets no Secrets Manager | `aws rds describe-db-instances`, `scripts/test-data-connectivity.sh` | Concluída |
 | 5 | Plataforma | ALB Controller, ESO + `ClusterSecretStore`, ArgoCD | Pods em `argocd` e `external-secrets`; UI do ArgoCD | Concluída |
 | 6 | GitOps | `k8s/` → `gitops/apps/*` em Kustomize, `ExternalSecret`, `ApplicationSet` com auto-sync/prune/self-heal, scripts de bootstrap | 5 apps *Synced/Healthy*; `scripts/test-services.sh` | Concluída (revalidar em `main` após o merge) |
-| 7 | CI DevSecOps | Workflows reutilizáveis + 5 por serviço, testes unitários, lint, gosec/bandit, Trivy fs/image, SonarCloud, push ECR | PR com checks verdes; imagem com tag nova no ECR | Concluída (push no ECR validado no merge) |
-| 8 | Atualização de tag | Job final faz `kustomize edit set image` + commit em `gitops/` | Commit do bot → ArgoCD sincroniza → pod com nova tag | Pendente |
+| 7 | CI DevSecOps | Workflows reutilizáveis + 5 por serviço, testes unitários, lint, gosec/bandit, Trivy fs/image, SonarCloud, push ECR | PR com checks verdes; imagem com tag nova no ECR | Concluída |
+| 8 | Atualização de tag | Job `gitops` altera `newTag` em `gitops/apps/<serviço>/kustomization.yaml` e commita na `main`; `workflow_dispatch` | Commit do bot → ArgoCD sincroniza → pod com nova tag | Implementada (validação no merge) |
 | 9 | Demo e entrega | Roteiro do vídeo (falha de segurança → correção), README, custos, relatório, destroy | Ensaio completo do roteiro | Pendente |
 
 ## Pontos de atenção

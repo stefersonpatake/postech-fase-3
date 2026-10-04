@@ -59,8 +59,9 @@ else
 
 Após recriar o ambiente do zero, o ECR e os bancos nascem vazios. Passos seguintes:
   1. ./scripts/sync-gh-secrets.sh             # credenciais do Academy para o CI
-  2. ./scripts/bootstrap-images.sh            # publica as imagens e atualiza gitops/
-     git add gitops && git commit -m "Atualiza tags das imagens" && git push   (branch monitorado pelo ArgoCD)
+  2. Republicar as imagens e atualizar gitops/ pelo CI:
+       for s in auth flag targeting evaluation analytics; do gh workflow run $s-service.yml; done
+     (alternativa local, com Docker: ./scripts/bootstrap-images.sh + commit/push de gitops/)
   3. ./scripts/bootstrap-service-api-key.sh   # emite a SERVICE_API_KEY do evaluation-service
   4. ./scripts/test-services.sh               # teste ponta a ponta
 NEXT
