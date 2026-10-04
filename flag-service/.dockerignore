@@ -1,0 +1,6 @@
+tests/
+requirements-dev.txt
+.flake8
+.pytest_cache/
+__pycache__/
+README.md

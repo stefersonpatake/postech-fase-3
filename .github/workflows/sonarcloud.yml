@@ -1,0 +1,38 @@
+# SAST complementar: análise do repositório inteiro no SonarCloud (painel de qualidade
+# e segurança). O bloqueio do pipeline é feito por gosec/bandit/Trivy nos workflows
+# de cada serviço; aqui o objetivo é visibilidade.
+name: sonarcloud
+
+on:
+  pull_request:
+    paths:
+      - "*-service/**"
+      - "sonar-project.properties"
+      - ".github/workflows/sonarcloud.yml"
+  push:
+    branches: [main]
+    paths:
+      - "*-service/**"
+      - "sonar-project.properties"
+      - ".github/workflows/sonarcloud.yml"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  sonarcloud:
+    name: SonarCloud Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # histórico completo: necessário para o Sonar atribuir "new code"
+
+      - uses: SonarSource/sonarqube-scan-action@v8
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

@@ -1,0 +1,6 @@
+[flake8]
+max-line-length = 120
+exclude = .venv,__pycache__
+# Regras de espaçamento/estilo do código herdado, sem impacto em comportamento.
+# Erros reais (sintaxe, nomes indefinidos, imports não usados) continuam bloqueando.
+extend-ignore = E261,E302,E305,E701,W291,W293,W391

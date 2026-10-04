@@ -1,0 +1,29 @@
+name: evaluation-service
+
+on:
+  pull_request:
+    paths:
+      - "evaluation-service/**"
+      - ".github/workflows/evaluation-service.yml"
+      - ".github/workflows/_ci-go.yml"
+  push:
+    branches: [main]
+    paths:
+      - "evaluation-service/**"
+      - ".github/workflows/evaluation-service.yml"
+      - ".github/workflows/_ci-go.yml"
+
+# Um novo commit no mesmo PR cancela a execução anterior; na main as execuções não são canceladas.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    uses: ./.github/workflows/_ci-go.yml
+    with:
+      service: evaluation-service
+    secrets: inherit

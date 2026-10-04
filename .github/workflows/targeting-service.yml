@@ -1,0 +1,29 @@
+name: targeting-service
+
+on:
+  pull_request:
+    paths:
+      - "targeting-service/**"
+      - ".github/workflows/targeting-service.yml"
+      - ".github/workflows/_ci-python.yml"
+  push:
+    branches: [main]
+    paths:
+      - "targeting-service/**"
+      - ".github/workflows/targeting-service.yml"
+      - ".github/workflows/_ci-python.yml"
+
+# Um novo commit no mesmo PR cancela a execução anterior; na main as execuções não são canceladas.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    uses: ./.github/workflows/_ci-python.yml
+    with:
+      service: targeting-service
+    secrets: inherit

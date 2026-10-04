@@ -1,0 +1,4 @@
+# Ferramentas de teste, lint e SAST usadas no CI (não vão para a imagem).
+pytest==8.3.4
+flake8==7.1.1
+bandit==1.8.0
