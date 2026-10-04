@@ -70,9 +70,36 @@
 
 ## Estimativa de custos da AWS
 
-[PREENCHER: inserir aqui o print da AWS Pricing Calculator. Os itens e quantidades a cadastrar estão em [CUSTOS.md](CUSTOS.md).]
+### Custo real e previsão (console AWS, painel "Custo e uso", 04/10/2026)
 
-Referência (valores aproximados, us-east-1, ambiente ligado 24×7): **~US$ 298/mês**
-(≈ US$ 0,41/h). Principais itens: nós EC2 (~US$ 91), EKS (US$ 73), RDS (~US$ 46), NAT Gateway
-(~US$ 33), ALB (~US$ 22), ElastiCache (~US$ 12). Como o ambiente é destruído ao fim de cada sessão,
-o custo efetivo do projeto é de cerca de US$ 1,65 por sessão de 4 horas.
+![Painel Custo e uso da AWS em 04/10/2026](img/custo-e-uso-aws-2026-10-04.png)
+
+| Indicador | Valor |
+|---|---:|
+| Gasto acumulado no mês (outubro, até o dia 4) | US$ 4,46 |
+| Previsão da AWS para o fechamento do mês | US$ 18,51 |
+
+O valor é baixo porque o ambiente **não fica ligado continuamente**: é criado por
+`./scripts/infra-up.sh` no início de cada sessão de trabalho e destruído por
+`./scripts/infra-down.sh` ao final. Os principais componentes do gasto são EC2 (nós do EKS, NAT e
+volumes), VPC, EKS e RDS, coerentes com a arquitetura provisionada.
+
+### Estimativa com o ambiente ligado 24×7
+
+Valores aproximados de tabela (us-east-1, on-demand); detalhamento e itens para a AWS Pricing
+Calculator em [CUSTOS.md](CUSTOS.md).
+
+| Recurso | US$/mês |
+|---|---:|
+| EC2 — 3 nós `t3.medium` + EBS | ~96 |
+| EKS (control plane) | 73 |
+| RDS — 3 × `db.t3.micro` + armazenamento | ~46 |
+| NAT Gateway | ~33 |
+| Application Load Balancer | ~22 |
+| ElastiCache — `cache.t3.micro` | ~12 |
+| IPv4 públicos | ~11 |
+| Secrets Manager, DynamoDB, SQS, ECR, S3 | ~4 |
+| **Total** | **~298** (≈ US$ 0,41/h) |
+
+A diferença entre os ~US$ 298 de um ambiente permanente e os ~US$ 18 previstos para o mês é o
+ganho direto de ter toda a infraestrutura como código: o ambiente existe apenas enquanto é usado.

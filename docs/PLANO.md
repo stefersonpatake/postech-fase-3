@@ -56,7 +56,7 @@ Cada etapa tem um documento próprio `docs/ETAPA-N.md` com o que foi feito e com
 | 6 | GitOps | `k8s/` → `gitops/apps/*` em Kustomize, `ExternalSecret`, `ApplicationSet` com auto-sync/prune/self-heal, scripts de bootstrap | 5 apps *Synced/Healthy*; `scripts/test-services.sh` | Concluída |
 | 7 | CI DevSecOps | Workflows reutilizáveis + 5 por serviço, testes unitários, lint, gosec/bandit, Trivy fs/image, SonarCloud, push ECR | PR com checks verdes; imagem com tag nova no ECR | Concluída |
 | 8 | Atualização de tag | Job `gitops` altera `newTag` em `gitops/apps/<serviço>/kustomization.yaml` e commita na `main`; `workflow_dispatch` | Commit do bot → ArgoCD sincroniza → pod com nova tag | Concluída |
-| 9 | Demo e entrega | `README.md`, `docs/ROTEIRO-DEMO.md`, `docs/CUSTOS.md`, `docs/RELATORIO.md` | Ensaio do roteiro; gravação do vídeo; print da calculadora | Documentos prontos; vídeo e print pendentes |
+| 9 | Demo e entrega | `README.md`, `docs/ROTEIRO-DEMO.md`, `docs/CUSTOS.md`, `docs/RELATORIO.md` | Ensaio do roteiro; gravação do vídeo; print da calculadora | Documentos e print de custos prontos; vídeo pendente |
 
 ## Pontos de atenção
 
