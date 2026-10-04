@@ -28,4 +28,4 @@ configMapGenerator:
 images:
   - name: targeting-service
     newName: 583383233548.dkr.ecr.us-east-1.amazonaws.com/togglemaster/targeting-service
-    newTag: v1.0.0-84706c4
+    newTag: v1.0.0-a13ec71
