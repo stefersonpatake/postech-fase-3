@@ -53,10 +53,10 @@ Cada etapa tem um documento próprio `docs/ETAPA-N.md` com o que foi feito e com
 | 3 | EKS | Módulo `eks` (cluster + node group com LabRole, access entry, addons) | `kubectl get nodes`; pod de teste com identidade LabRole | Concluída |
 | 4 | Dados + mensageria | 3 RDS PostgreSQL, ElastiCache Redis, DynamoDB `ToggleMasterAnalytics`, SQS, secrets no Secrets Manager | `aws rds describe-db-instances`, `scripts/test-data-connectivity.sh` | Concluída |
 | 5 | Plataforma | ALB Controller, ESO + `ClusterSecretStore`, ArgoCD | Pods em `argocd` e `external-secrets`; UI do ArgoCD | Concluída |
-| 6 | GitOps | `k8s/` → `gitops/apps/*` em Kustomize, `ExternalSecret`, `ApplicationSet` com auto-sync/prune/self-heal, scripts de bootstrap | 5 apps *Synced/Healthy*; `scripts/test-services.sh` | Concluída (revalidar em `main` após o merge) |
+| 6 | GitOps | `k8s/` → `gitops/apps/*` em Kustomize, `ExternalSecret`, `ApplicationSet` com auto-sync/prune/self-heal, scripts de bootstrap | 5 apps *Synced/Healthy*; `scripts/test-services.sh` | Concluída |
 | 7 | CI DevSecOps | Workflows reutilizáveis + 5 por serviço, testes unitários, lint, gosec/bandit, Trivy fs/image, SonarCloud, push ECR | PR com checks verdes; imagem com tag nova no ECR | Concluída |
-| 8 | Atualização de tag | Job `gitops` altera `newTag` em `gitops/apps/<serviço>/kustomization.yaml` e commita na `main`; `workflow_dispatch` | Commit do bot → ArgoCD sincroniza → pod com nova tag | Implementada (validação no merge) |
-| 9 | Demo e entrega | Roteiro do vídeo (falha de segurança → correção), README, custos, relatório, destroy | Ensaio completo do roteiro | Pendente |
+| 8 | Atualização de tag | Job `gitops` altera `newTag` em `gitops/apps/<serviço>/kustomization.yaml` e commita na `main`; `workflow_dispatch` | Commit do bot → ArgoCD sincroniza → pod com nova tag | Concluída |
+| 9 | Demo e entrega | `README.md`, `docs/ROTEIRO-DEMO.md`, `docs/CUSTOS.md`, `docs/RELATORIO.md` | Ensaio do roteiro; gravação do vídeo; print da calculadora | Documentos prontos; vídeo e print pendentes |
 
 ## Pontos de atenção
 
