@@ -158,7 +158,7 @@ gh pr create --fill
 | `actionlint` nos workflows | ✅ sem erros |
 | PR #8, 1ª execução | ⚠️ 20 de 22 checks: evaluation-service bloqueado pelo gosec (G704 HIGH) e quality gate do Sonar reprovado (root + cobertura) |
 | PR #8, após correções | ✅ **22 de 22 checks**: 5 × (Build & Test, Lint, Security, Docker) + SonarCloud Scan + quality gate |
-| Testes unitários | ✅ auth 3 testes, evaluation 6, flag 6, targeting 6, analytics 4 |
+| Testes unitários | ✅ 28 testes: auth 5, evaluation 7, flag 6, targeting 6, analytics 4 |
 | Imagens novas (Trivy, CRITICAL) | ✅ 0 em todas as 5 (antes: 1 nas Go, 15 nas Python) |
 | Imagens novas funcionando (`docker compose`) | ✅ `/health` 200 nos 5; usuário `app`; Python 3.11; 401 sem chave, flag 201, regra 201, `flag_name` inválido 400 |
 | Regra de bloqueio do SCA | ✅ `PyYAML==5.3.1` → Trivy acusa CVE-2020-14343 CRITICAL (simulado localmente) |

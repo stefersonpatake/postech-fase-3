@@ -87,16 +87,20 @@ for s in auth flag targeting evaluation analytics; do gh workflow run $s-service
 Na UI do ArgoCD (`kubectl -n argocd port-forward svc/argocd-server 8080:80`), a Application do
 serviço mostra o novo commit em *Last Sync* e os pods sendo substituídos.
 
-## Resultado da validação
+## Resultado da validação (2026-10-04)
 
-O job `gitops` só roda na `main`, então a validação acontece no merge deste PR: como os workflows
-mudam, os 5 pipelines disparam, publicam `v1.0.0-<sha do merge>` e atualizam as 5 tags.
+Validado no merge do PR #9 (commit `a13ec71`): como os workflows mudaram, os 5 pipelines dispararam
+ao mesmo tempo na `main`.
 
 | Verificação | Resultado |
 |---|---|
 | `actionlint` | ✅ |
-| `sed` altera somente a linha `newTag` | ✅ testado em container Ubuntu (mesmo `sed` do runner) |
-| Checks do PR (job `gitops` não roda em PR) | ver PR |
-| 5 commits do bot em `gitops/` após o merge | ⏳ |
-| ArgoCD sincroniza as 5 Applications com a nova tag | ⏳ |
-| `test-services.sh` com as imagens novas (Go 1.25, Python 3.11, sem root) | ⏳ |
+| `sed` altera somente a linha `newTag` | ✅ |
+| PR #9 | ✅ 20 checks; job `gitops` *skipped* nos 5 (em PR nada é publicado) |
+| Pipelines na `main` | ✅ 5 de 5, com os 5 estágios (Build & Test, Lint, Security, Docker, GitOps) |
+| Imagens no ECR | ✅ `v1.0.0-a13ec71` nos 5 repositórios |
+| Commits do bot | ✅ 5 commits `gitops(<serviço>): imagem v1.0.0-a13ec71`, sem conflito entre pipelines simultâneos |
+| ArgoCD | ✅ 5 Applications `Synced` / `Healthy` na nova revisão, sem intervenção |
+| Deployments | ✅ os 5 com a imagem `v1.0.0-a13ec71` |
+| Imagens novas no cluster | ✅ pods rodando como usuário `app` (sem root) |
+| `scripts/test-services.sh` | ✅ todos os testes (health ×5, 401 sem chave, flag 201, regra 201, avaliação 200, evento no DynamoDB) |
