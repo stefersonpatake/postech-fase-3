@@ -47,6 +47,11 @@ External Secrets e ALB Controller rodam nos nós já contabilizados.
 
 ## Custo real do projeto
 
+Painel "Custo e uso" do console AWS em 04/10/2026: **US$ 4,46** acumulados no mês e previsão de
+**US$ 18,51** para o fechamento.
+
+![Painel Custo e uso da AWS em 04/10/2026](img/custo-e-uso-aws-2026-10-04.png)
+
 O ambiente não fica ligado 24×7: `./scripts/infra-down.sh` destrói tudo ao fim de cada sessão e
 `./scripts/infra-up.sh` recria em ~20 minutos. A ~US$ 0,41/h, uma sessão de 4 horas custa cerca de
 US$ 1,65. Esse é o principal ganho financeiro de ter a infraestrutura inteira como código.
