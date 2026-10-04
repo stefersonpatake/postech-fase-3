@@ -1,0 +1,34 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: evaluation
+
+labels:
+  - pairs:
+      app.kubernetes.io/part-of: togglemaster
+
+resources:
+  - namespace.yaml
+  - external-secret.yaml
+  - deployment.yaml
+  - service.yaml
+  - ingress.yaml
+  - hpa.yaml
+
+# Configuração não sensível. O sufixo de hash gerado pelo Kustomize faz o Deployment
+# reiniciar os pods automaticamente quando um valor muda.
+configMapGenerator:
+  - name: evaluation-service-config
+    literals:
+      - PORT=8004
+      - AWS_REGION=us-east-1
+      - AWS_SQS_URL=https://sqs.us-east-1.amazonaws.com/583383233548/togglemaster-events
+      - AUTH_SERVICE_URL=http://auth-service.auth.svc.cluster.local:8001
+      - FLAG_SERVICE_URL=http://flag-service.flags.svc.cluster.local:8002
+      - TARGETING_SERVICE_URL=http://targeting-service.targeting.svc.cluster.local:8003
+
+# A tag abaixo é atualizada pelo pipeline de CI a cada build (não editar à mão).
+images:
+  - name: evaluation-service
+    newName: 583383233548.dkr.ecr.us-east-1.amazonaws.com/togglemaster/evaluation-service
+    newTag: v1.0.0-ba71c38

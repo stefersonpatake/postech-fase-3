@@ -1,0 +1,37 @@
+# Gera uma Application do ArgoCD para cada pasta em gitops/apps/ do repositório.
+# Adicionar um microsserviço = adicionar uma pasta; nenhuma alteração aqui.
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: togglemaster
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+    - git:
+        repoURL: {{ .Values.repoURL }}
+        revision: {{ .Values.revision }}
+        directories:
+          - path: {{ .Values.appsPath }}/*
+  template:
+    metadata:
+      name: {{ `'{{ .path.basename }}'` }}
+      labels:
+        app.kubernetes.io/part-of: togglemaster
+    spec:
+      project: default
+      source:
+        repoURL: {{ .Values.repoURL }}
+        targetRevision: {{ .Values.revision }}
+        path: {{ `'{{ .path.path }}'` }}
+      destination:
+        server: https://kubernetes.default.svc
+        # O namespace real de cada serviço é definido no kustomization.yaml da pasta.
+        namespace: default
+      syncPolicy:
+        automated:
+          prune: true    # remove do cluster o que foi removido do Git
+          selfHeal: true # desfaz alterações manuais (kubectl edit/apply)
+        syncOptions:
+          - ApplyOutOfSyncOnly=true

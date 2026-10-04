@@ -1,0 +1,31 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: targeting
+
+labels:
+  - pairs:
+      app.kubernetes.io/part-of: togglemaster
+
+resources:
+  - namespace.yaml
+  - external-secret.yaml
+  - deployment.yaml
+  - service.yaml
+  - ingress.yaml
+
+# Configuração não sensível. O sufixo de hash gerado pelo Kustomize faz o Deployment
+# reiniciar os pods automaticamente quando um valor muda.
+configMapGenerator:
+  - name: targeting-service-config
+    literals:
+      - PORT=8003
+      - AWS_REGION=us-east-1
+      - AUTH_SERVICE_URL=http://auth-service.auth.svc.cluster.local:8001
+      - FLAG_SERVICE_URL=http://flag-service.flags.svc.cluster.local:8002
+
+# A tag abaixo é atualizada pelo pipeline de CI a cada build (não editar à mão).
+images:
+  - name: targeting-service
+    newName: 583383233548.dkr.ecr.us-east-1.amazonaws.com/togglemaster/targeting-service
+    newTag: v1.0.0-ba71c38

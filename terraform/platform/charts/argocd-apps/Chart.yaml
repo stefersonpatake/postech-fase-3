@@ -1,0 +1,5 @@
+apiVersion: v2
+name: argocd-apps
+description: ApplicationSet que liga o ArgoCD à pasta gitops/apps do repositório
+type: application
+version: 0.1.0
