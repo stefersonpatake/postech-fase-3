@@ -54,7 +54,7 @@ Onde a tag da imagem é definida (é esta linha que o CI vai alterar na Etapa 8)
 images:
   - name: auth-service
     newName: 583383233548.dkr.ecr.us-east-1.amazonaws.com/togglemaster/auth-service
-    newTag: v1.0.0-ba71c38
+    newTag: v1.0.0-84706c4
 ```
 
 > O desafio cita "alterar o arquivo deployment.yaml". Com Kustomize a tag fica em
@@ -139,7 +139,7 @@ Validado com o `ApplicationSet` apontando temporariamente para o branch `fase3/e
 | Verificação | Resultado |
 |---|---|
 | `kubectl kustomize` nos 5 diretórios | ✅ |
-| Imagens no ECR | ✅ 5 imagens `v1.0.0-ba71c38` |
+| Imagens no ECR | ✅ 5 imagens `v1.0.0-ba71c38` (1ª carga) |
 | `metrics-server` | ✅ `kubectl top nodes` e HPAs com `cpu: 1%/70%` |
 | Applications | ✅ 5 `Synced` / `Healthy` |
 | Pods | ✅ 5 `Running` (schemas aplicados nos 3 RDS pelos entrypoints) |
@@ -150,9 +150,11 @@ Validado com o `ApplicationSet` apontando temporariamente para o branch `fase3/e
 | Ponta a ponta | ✅ avaliação respondeu 200 e o evento chegou ao DynamoDB (0 → 1 item); ✅ criação de flag com a chave (201) e rejeição sem chave (401) |
 | Sync automático | ✅ commit `8e6e640` (label nos namespaces) aplicado pelo ArgoCD em ~70s, sem intervenção |
 | Rolling update com readiness gate | ✅ 89 de 90 requisições com 200 durante o restart |
-| Rolling update com `preStop` (0 falhas esperadas) | ⏳ **não validado** — o ambiente foi derrubado (`infra-down.sh`) durante o teste |
-| `test-services.sh` completo após a correção do script | ⏳ **não reexecutado** pelo mesmo motivo |
-| `ApplicationSet` apontando para `main` | ⏳ depende do merge deste PR |
+| Rolling update com `preStop` | ✅ 120 de 120 requisições com 200 durante o restart do evaluation-service |
+| Self-heal | ✅ `kubectl scale --replicas=3` no auth-service desfeito pelo ArgoCD em ~3s |
+| Ambiente recriado do zero | ✅ `infra-up.sh` (38 + 5 recursos) → `bootstrap-images.sh` (`v1.0.0-84706c4`) → 5 Applications `Synced`/`Healthy` em ~2 min → `bootstrap-service-api-key.sh` |
+| `test-services.sh` completo | ✅ health ×5, 401 sem chave, flag 201, regra 201, avaliação 200 (`result: true`), evento no DynamoDB (0 → 1) |
+| `ApplicationSet` apontando para `main` | ⏳ após o merge deste PR: `terraform -chdir=terraform/platform apply` (sem `-var`) |
 
 ### Problemas encontrados
 
