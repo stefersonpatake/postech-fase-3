@@ -4,8 +4,8 @@
 
 ## Participantes
 
-- Steferson Patake
-- [PREENCHER: demais integrantes do grupo, se houver]
+- Gustavo Michel - RM375227 - Discord: gustavo.michel1
+- Steferson Patake - RM375351 - Discord: steferson_33667
 
 ## Links
 

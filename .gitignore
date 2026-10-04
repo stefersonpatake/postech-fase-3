@@ -17,3 +17,6 @@ __pycache__/
 
 # Relatórios de segurança gerados localmente
 *.sarif
+
+# Laboratório de Terraform (arquivos gerados pelos exercícios)
+docs/terraform-lab/saida/

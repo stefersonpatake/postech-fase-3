@@ -136,6 +136,7 @@ O raciocínio completo, os problemas encontrados e como testar cada parte estão
 | [docs/ETAPA-6.md](docs/ETAPA-6.md) | Manifestos GitOps e ApplicationSet |
 | [docs/ETAPA-7.md](docs/ETAPA-7.md) | Pipelines de CI DevSecOps |
 | [docs/ETAPA-8.md](docs/ETAPA-8.md) | CI atualizando a tag no GitOps |
+| [docs/TERRAFORM-GUIA.md](docs/TERRAFORM-GUIA.md) | Guia didático de Terraform a partir deste projeto, com laboratório prático em [docs/terraform-lab/](docs/terraform-lab/README.md) |
 | [docs/ROTEIRO-DEMO.md](docs/ROTEIRO-DEMO.md) | Roteiro do vídeo de demonstração |
 | [docs/CUSTOS.md](docs/CUSTOS.md) | Estimativa de custos |
 | [docs/RELATORIO.md](docs/RELATORIO.md) | Relatório de entrega |
