@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: flags
+  labels:
+    # O pod novo só fica Ready depois de registrado e saudável no ALB:
+    # evita erros 502 durante o rolling update.
+    elbv2.k8s.aws/pod-readiness-gate-inject: enabled

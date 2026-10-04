@@ -31,3 +31,21 @@ variable "argocd_chart_version" {
   type    = string
   default = "10.9.6"
 }
+
+variable "gitops_repo_url" {
+  description = "Repositório Git monitorado pelo ArgoCD"
+  type        = string
+  default     = "https://github.com/stefersonpatake/postech-fase-3.git"
+}
+
+variable "gitops_revision" {
+  description = "Branch monitorado pelo ArgoCD"
+  type        = string
+  default     = "main"
+}
+
+variable "gitops_apps_path" {
+  description = "Pasta do repositório com um diretório Kustomize por microsserviço"
+  type        = string
+  default     = "gitops/apps"
+}

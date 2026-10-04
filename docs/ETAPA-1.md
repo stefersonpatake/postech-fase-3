@@ -95,3 +95,40 @@ terraform apply -auto-approve & sleep 2; terraform plan -lock-timeout=0s
 
 - Evitar `aws_s3_bucket` em qualquer camada (SCP do Academy).
 - Outros recursos com leituras "extras" no refresh podem sofrer o mesmo; validar cada módulo com `plan` + `apply` cedo.
+
+## Solução de problemas: lock órfão (`Error acquiring the state lock`)
+
+Se um `terraform apply`/`destroy` é interrompido à força (terminal fechado, máquina suspensa,
+`kill`), o arquivo `.tflock` pode ficar no bucket e todo comando seguinte falha com:
+
+```
+Error: Error acquiring the state lock
+... StatusCode: 412 ... PreconditionFailed
+Lock Info:
+  ID:        2a3a102e-43ec-1218-0968-7e6200489901
+  Operation: OperationTypeApply
+  Created:   2026-10-04 03:46:50 UTC
+```
+
+Passo a passo (ocorrido em 2026-10-04, após um `infra-down.sh -y` interrompido):
+
+```bash
+# 1. Confirmar que NÃO há Terraform rodando (se houver, é só aguardar — o lock é legítimo)
+pgrep -fl "terraform (apply|destroy|plan)|infra-(up|down)"
+
+# 2. Liberar o lock usando o ID mostrado no erro
+cd terraform/infra            # ou terraform/platform, conforme o "Path" do erro
+terraform force-unlock <ID>
+
+# 3. Ver como o Terraform reconcilia state x realidade
+terraform plan
+```
+
+Uma operação interrompida também pode deixar o **state desatualizado**: recursos já apagados na AWS
+ainda listados no state. Não é preciso corrigir à mão: no `plan`/`apply` seguinte o Terraform
+consulta cada recurso, detecta os que sumiram ("has been deleted") e planeja recriá-los. No caso
+acima, o state listava 56 recursos, a AWS só tinha a VPC e o cluster EKS, e o `plan` resultou em
+`38 to add, 0 to change, 0 to destroy`; `./scripts/infra-up.sh` recriou tudo.
+
+Para evitar: deixar `infra-up.sh`/`infra-down.sh` terminarem (≈20 min) sem fechar o terminal nem
+suspender a máquina; se precisar interromper, um único `Ctrl+C` e aguardar o Terraform encerrar.

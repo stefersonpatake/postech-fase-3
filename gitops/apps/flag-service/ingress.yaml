@@ -1,0 +1,26 @@
+# Todos os serviços compartilham um único ALB (group.name). O ALB encaminha
+# /flags/... para este serviço removendo o prefixo: /flags/health -> /health.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: flag-service
+  annotations:
+    alb.ingress.kubernetes.io/group.name: togglemaster
+    alb.ingress.kubernetes.io/group.order: "20"
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/healthcheck-path: /health
+    alb.ingress.kubernetes.io/transforms.flag-service: >-
+      [{"type":"url-rewrite","urlRewriteConfig":{"rewrites":[{"regex":"^/flags/?(.*)$","replace":"/$1"}]}}]
+spec:
+  ingressClassName: alb
+  rules:
+    - http:
+        paths:
+          - path: /flags
+            pathType: Prefix
+            backend:
+              service:
+                name: flag-service
+                port:
+                  number: 8002

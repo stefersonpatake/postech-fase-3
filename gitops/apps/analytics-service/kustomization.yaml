@@ -1,0 +1,31 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: analytics
+
+labels:
+  - pairs:
+      app.kubernetes.io/part-of: togglemaster
+
+resources:
+  - namespace.yaml
+  - deployment.yaml
+  - service.yaml
+  - ingress.yaml
+  - hpa.yaml
+
+# Configuração não sensível. O sufixo de hash gerado pelo Kustomize faz o Deployment
+# reiniciar os pods automaticamente quando um valor muda.
+configMapGenerator:
+  - name: analytics-service-config
+    literals:
+      - PORT=8005
+      - AWS_REGION=us-east-1
+      - AWS_SQS_URL=https://sqs.us-east-1.amazonaws.com/583383233548/togglemaster-events
+      - AWS_DYNAMODB_TABLE=ToggleMasterAnalytics
+
+# A tag abaixo é atualizada pelo pipeline de CI a cada build (não editar à mão).
+images:
+  - name: analytics-service
+    newName: 583383233548.dkr.ecr.us-east-1.amazonaws.com/togglemaster/analytics-service
+    newTag: v1.0.0-84706c4

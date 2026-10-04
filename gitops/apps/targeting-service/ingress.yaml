@@ -1,0 +1,26 @@
+# Todos os serviços compartilham um único ALB (group.name). O ALB encaminha
+# /targeting/... para este serviço removendo o prefixo: /targeting/health -> /health.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: targeting-service
+  annotations:
+    alb.ingress.kubernetes.io/group.name: togglemaster
+    alb.ingress.kubernetes.io/group.order: "30"
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/healthcheck-path: /health
+    alb.ingress.kubernetes.io/transforms.targeting-service: >-
+      [{"type":"url-rewrite","urlRewriteConfig":{"rewrites":[{"regex":"^/targeting/?(.*)$","replace":"/$1"}]}}]
+spec:
+  ingressClassName: alb
+  rules:
+    - http:
+        paths:
+          - path: /targeting
+            pathType: Prefix
+            backend:
+              service:
+                name: targeting-service
+                port:
+                  number: 8003
