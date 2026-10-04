@@ -30,6 +30,12 @@ spec:
                 name: auth-service-config
             - secretRef:
                 name: auth-service-secret
+          lifecycle:
+            # Mantém o pod antigo atendendo enquanto o ALB o remove da rotação,
+            # para não derrubar requisições em andamento no rolling update.
+            preStop:
+              sleep:
+                seconds: 15
           readinessProbe:
             httpGet:
               path: /health

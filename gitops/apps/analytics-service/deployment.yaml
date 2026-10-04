@@ -28,6 +28,12 @@ spec:
           envFrom:
             - configMapRef:
                 name: analytics-service-config
+          lifecycle:
+            # Mantém o pod antigo atendendo enquanto o ALB o remove da rotação,
+            # para não derrubar requisições em andamento no rolling update.
+            preStop:
+              sleep:
+                seconds: 15
           readinessProbe:
             httpGet:
               path: /health
