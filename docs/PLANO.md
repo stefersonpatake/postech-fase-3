@@ -52,7 +52,7 @@ Cada etapa tem um documento próprio `docs/ETAPA-N.md` com o que foi feito e com
 | 1 | Backend remoto | `terraform/bootstrap/bootstrap.sh` cria bucket S3 (versionado, criptografado); backend em `infra/` | `aws s3 ls`; state das demais camadas no S3; teste de lock | Concluída |
 | 2 | Rede + ECR | Módulos `network` (VPC, subnets públicas/privadas, IGW, NAT, route tables) e `ecr` (5 repos) | `terraform plan/apply`, `aws ec2 describe-vpcs`, `aws ecr describe-repositories` | Concluída |
 | 3 | EKS | Módulo `eks` (cluster + node group com LabRole, access entry, addons) | `kubectl get nodes`; pod de teste com identidade LabRole | Concluída |
-| 4 | Dados + mensageria | 3 RDS PostgreSQL, ElastiCache Redis, DynamoDB `ToggleMasterAnalytics`, SQS, secrets no Secrets Manager | `aws rds describe-db-instances`, pod de teste com `psql`/`redis-cli` | Pendente |
+| 4 | Dados + mensageria | 3 RDS PostgreSQL, ElastiCache Redis, DynamoDB `ToggleMasterAnalytics`, SQS, secrets no Secrets Manager | `aws rds describe-db-instances`, `scripts/test-data-connectivity.sh` | Concluída |
 | 5 | Plataforma | ALB Controller, ESO + `ClusterSecretStore`, ArgoCD | Pods em `argocd` e `external-secrets`; UI do ArgoCD | Pendente |
 | 6 | GitOps | `k8s/` → `gitops/apps/*` em Kustomize, `ExternalSecret`, app-of-apps com auto-sync/prune/self-heal | 5 apps *Synced/Healthy*; `test_all-services.sh` | Pendente |
 | 7 | CI DevSecOps | Testes unitários mínimos, lint, gosec/bandit, SonarCloud, Trivy fs/image, push ECR | PR com checks; imagem com tag nova no ECR | Pendente |
