@@ -66,4 +66,4 @@ Cada etapa tem um documento próprio `docs/ETAPA-N.md` com o que foi feito e com
   (`refresh-academy-credentials.sh`, que alimenta ESO e ALB Controller).
 - **Capacidade do cluster:** ArgoCD + ESO + ALB Controller + 5 serviços → 3 nós `t3.medium`.
 - **Loop de CI:** o bot só commita em `gitops/`, que não está nos `paths` dos workflows dos serviços.
-- **Custos:** destruir o ambiente (`terraform destroy` em `platform` → `infra`) ao fim de cada sessão de trabalho longa.
+- **Custos:** derrubar o ambiente ao fim de cada sessão de trabalho com `./scripts/infra-down.sh` (destrói `platform` → `infra`, preserva o bucket de state) e recriar com `./scripts/infra-up.sh`.

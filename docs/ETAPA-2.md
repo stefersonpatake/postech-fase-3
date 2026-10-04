@@ -101,3 +101,44 @@ aws ecr get-login-password | docker login --username AWS --password-stdin $(terr
 
 Recurso cobrado por hora: **NAT Gateway** (~US$ 0,045/h + dados) e o **EIP** associado. ECR cobra
 apenas por armazenamento. Para pausar custos: `terraform destroy` (a rede é recriada em ~3 min).
+
+## Subir e derrubar o ambiente (`scripts/infra-up.sh` / `scripts/infra-down.sh`)
+
+Para não pagar por recursos parados entre sessões de trabalho, dois scripts aplicam/destroem as
+camadas Terraform na ordem correta. Camadas ainda sem código (`platform/` até a Etapa 5) são ignoradas.
+
+| Script | Ordem | Observações |
+|---|---|---|
+| `infra-up.sh` | `bootstrap.sh` → `infra` → `platform` | Idempotente; pode rodar com o ambiente já no ar |
+| `infra-down.sh` | `platform` → `infra` | **Não** remove o bucket de state; pula camadas sem recursos |
+
+Opções (iguais nos dois): sem argumento pede confirmação (`yes`) por camada; `-y` não pede;
+`--dry-run` só mostra o `plan` / `plan -destroy`.
+
+```bash
+./scripts/infra-down.sh --dry-run   # o que seria destruído
+./scripts/infra-down.sh             # derruba
+./scripts/infra-up.sh --dry-run     # o que seria criado
+./scripts/infra-up.sh               # sobe tudo de novo
+```
+
+### Verificar o que foi desfeito
+
+```bash
+terraform -chdir=terraform/infra state list     # vazio
+
+aws ec2 describe-vpcs --filters Name=tag:Project,Values=togglemaster --query 'Vpcs[].VpcId'      # []
+aws ec2 describe-nat-gateways --filter Name=tag:Project,Values=togglemaster \
+  --query 'NatGateways[].[NatGatewayId,State]' --output text   # vazio ou "deleted" (some em ~1h, sem custo)
+aws ecr describe-repositories --query 'repositories[].repositoryName'                            # []
+
+# Histórico do state (bucket versionado)
+aws s3api list-object-versions --bucket togglemaster-tfstate-583383233548 \
+  --prefix infra/ --query 'Versions[].[LastModified,Size,IsLatest]' --output table
+```
+
+Validado em 2026-10-03: após o `terraform destroy`, state vazio, nenhuma VPC/ECR, NAT `deleted`;
+`infra-up.sh --dry-run` → `Plan: 24 to add`; `infra-down.sh --dry-run` → "nada a destruir".
+
+> Ao recriar, IDs de VPC/subnets e o IP do NAT mudam; nomes e URLs do ECR permanecem iguais.
+> A partir da Etapa 6 as imagens do ECR precisam ser republicadas (pipeline de CI) após um `infra-up`.
