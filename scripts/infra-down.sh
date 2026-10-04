@@ -26,6 +26,31 @@ done
 
 check_credentials
 
+# Load balancers criados pelo AWS Load Balancer Controller (a partir de Ingress) não
+# estão no state do Terraform. Se o controller for removido antes deles, os ALBs ficam
+# órfãos e a exclusão da VPC trava. Por isso, antes de destruir:
+#   1. remove as Applications do ArgoCD (senão ele recria os Ingress);
+#   2. apaga todos os Ingress e espera o controller remover os ALBs.
+cleanup_cluster_load_balancers() {
+  local cluster="${PROJECT:-togglemaster}-eks"
+  aws eks describe-cluster --name "$cluster" >/dev/null 2>&1 || return 0
+  aws eks update-kubeconfig --name "$cluster" >/dev/null 2>&1 || return 0
+  kubectl get ns >/dev/null 2>&1 || return 0
+
+  echo; echo "━━━ limpeza de load balancers do cluster ━━━"
+  if kubectl get crd applications.argoproj.io >/dev/null 2>&1; then
+    echo "🧹 Removendo Applications do ArgoCD..."
+    kubectl delete applications.argoproj.io --all -n argocd --timeout=180s 2>/dev/null || true
+  fi
+  if [ -n "$(kubectl get ingress -A --no-headers 2>/dev/null)" ]; then
+    echo "🧹 Removendo Ingress (o controller apaga os ALBs)..."
+    kubectl delete ingress --all -A --timeout=300s || true
+  fi
+  echo "✅ Nenhum Ingress restante."
+}
+
+$DRY_RUN || cleanup_cluster_load_balancers
+
 for (( i=${#LAYERS[@]}-1; i>=0; i-- )); do
   layer="${LAYERS[$i]}"
   echo; echo "━━━ $layer ━━━"

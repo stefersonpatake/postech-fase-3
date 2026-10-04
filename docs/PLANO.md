@@ -16,7 +16,7 @@ ToggleMaster (auth, flag, targeting, evaluation, analytics) com IaC, CI/CD, DevS
 | Segredos | `random_password` → AWS Secrets Manager → External Secrets Operator (ESO) | Nenhuma credencial em arquivo/git |
 | Acesso AWS dos pods (ESO, ALB Controller, serviços) | Role do nó (LabRole) via IMDS, hop limit 2 no launch template | Academy não permite IRSA nem Pod Identity; as credenciais do nó se renovam sozinhas, eliminando o CronJob `credentials-refresher` da Fase 2 (ver ETAPA-3) |
 | GitOps | Pasta `gitops/` no monorepo, Kustomize, ArgoCD app-of-apps | Menos credenciais; CI commita com `GITHUB_TOKEN` |
-| Instalação ArgoCD/ESO/ALB | Terraform + provider helm (`terraform/platform`) | Tudo como código |
+| Instalação ArgoCD/ESO/ALB | Terraform + provider helm (`terraform/platform`), versões de chart fixadas; ArgoCD acessado por port-forward | Tudo como código |
 | CI | Workflows reutilizáveis (Go e Python) + 5 callers com filtro de `paths` | Sem duplicação; cada serviço roda isolado |
 | SAST | gosec (Go) / bandit (Python) bloqueantes + SonarCloud (visualização) | Bloqueio controlado localmente; dashboard para a demo |
 | SCA / Container | Trivy `fs` e Trivy `image`, `--severity CRITICAL --exit-code 1` | Regra de bloqueio do desafio |
@@ -53,7 +53,7 @@ Cada etapa tem um documento próprio `docs/ETAPA-N.md` com o que foi feito e com
 | 2 | Rede + ECR | Módulos `network` (VPC, subnets públicas/privadas, IGW, NAT, route tables) e `ecr` (5 repos) | `terraform plan/apply`, `aws ec2 describe-vpcs`, `aws ecr describe-repositories` | Concluída |
 | 3 | EKS | Módulo `eks` (cluster + node group com LabRole, access entry, addons) | `kubectl get nodes`; pod de teste com identidade LabRole | Concluída |
 | 4 | Dados + mensageria | 3 RDS PostgreSQL, ElastiCache Redis, DynamoDB `ToggleMasterAnalytics`, SQS, secrets no Secrets Manager | `aws rds describe-db-instances`, `scripts/test-data-connectivity.sh` | Concluída |
-| 5 | Plataforma | ALB Controller, ESO + `ClusterSecretStore`, ArgoCD | Pods em `argocd` e `external-secrets`; UI do ArgoCD | Pendente |
+| 5 | Plataforma | ALB Controller, ESO + `ClusterSecretStore`, ArgoCD | Pods em `argocd` e `external-secrets`; UI do ArgoCD | Concluída |
 | 6 | GitOps | `k8s/` → `gitops/apps/*` em Kustomize, `ExternalSecret`, app-of-apps com auto-sync/prune/self-heal | 5 apps *Synced/Healthy*; `test_all-services.sh` | Pendente |
 | 7 | CI DevSecOps | Testes unitários mínimos, lint, gosec/bandit, SonarCloud, Trivy fs/image, push ECR | PR com checks; imagem com tag nova no ECR | Pendente |
 | 8 | Atualização de tag | Job final faz `kustomize edit set image` + commit em `gitops/` | Commit do bot → ArgoCD sincroniza → pod com nova tag | Pendente |
