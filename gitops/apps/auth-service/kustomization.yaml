@@ -26,4 +26,4 @@ configMapGenerator:
 images:
   - name: auth-service
     newName: 583383233548.dkr.ecr.us-east-1.amazonaws.com/togglemaster/auth-service
-    newTag: v1.0.0-ba71c38
+    newTag: v1.0.0-84706c4
