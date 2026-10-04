@@ -1,0 +1,5 @@
+apiVersion: v2
+name: platform-config
+description: Objetos de configuração da plataforma que dependem de CRDs (External Secrets)
+type: application
+version: 0.1.0

@@ -27,3 +27,49 @@ variable "services" {
   type        = set(string)
   default     = ["auth-service", "flag-service", "targeting-service", "evaluation-service", "analytics-service"]
 }
+
+variable "kubernetes_version" {
+  description = "Versão do Kubernetes do EKS"
+  type        = string
+  default     = "1.36"
+}
+
+variable "node_instance_types" {
+  description = "Tipos de instância dos nós"
+  type        = list(string)
+  default     = ["t3.medium"]
+}
+
+variable "node_desired_size" {
+  description = "Quantidade de nós (ArgoCD + ESO + ALB Controller + 5 serviços)"
+  type        = number
+  default     = 3
+}
+
+variable "databases" {
+  description = "Instâncias RDS PostgreSQL: uma por serviço que persiste dados relacionais"
+  type = map(object({
+    db_name  = string
+    username = string
+  }))
+  default = {
+    auth      = { db_name = "auth_db", username = "auth_user" }
+    flag      = { db_name = "flagapi", username = "flagapi_user" }
+    targeting = { db_name = "targeting_db", username = "targeting_user" }
+  }
+}
+
+variable "db_instance_class" {
+  type    = string
+  default = "db.t3.micro"
+}
+
+variable "redis_node_type" {
+  type    = string
+  default = "cache.t3.micro"
+}
+
+variable "dynamodb_table_name" {
+  type    = string
+  default = "ToggleMasterAnalytics"
+}
