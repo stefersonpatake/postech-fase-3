@@ -20,3 +20,4 @@ __pycache__/
 
 # Laboratório de Terraform (arquivos gerados pelos exercícios)
 docs/terraform-lab/saida/
+docs/terraform-lab/tfplan*

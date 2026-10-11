@@ -187,13 +187,42 @@ terraform state list
 
 ## Desafios (para fixar)
 
-1. Adicione a variável `versao` (string) e inclua `versao = ...` no arquivo gerado pelo módulo.
-   Dica: são 3 lugares (`modules/servico/variables.tf`, `modules/servico/main.tf` e a chamada em `main.tf`).
+1. Faça o arquivo gerado para cada serviço ganhar uma linha `versao = ...`.
+   Comece pelo módulo: declare `variable "versao"` em `modules/servico/variables.tf` e use
+   `${var.versao}` em `modules/servico/main.tf`. Depois passe o valor na chamada do módulo, em
+   `main.tf`. De onde vem esse valor? Há três caminhos, do mais simples ao mais flexível:
+   - um valor fixo: `versao = "1.0.0"`;
+   - uma variável da raiz: `versao = var.versao`, o que exige declarar `variable "versao"` também
+     em `variables.tf` **da raiz** (a variável do módulo não é visível de fora);
+   - uma versão por serviço: `versao = each.value.versao`, o que exige acrescentar o campo
+     `versao = string` ao tipo da variável `servicos` (campos fora do tipo são descartados sem aviso).
 2. Crie um output `quantidade_de_servicos` usando `length(var.servicos)`.
+   Atenção: existem dois `outputs.tf`. O da raiz enxerga `var.servicos`; o de `modules/servico/`
+   só enxerga o que está dentro do módulo.
 3. Rode `terraform apply`, renomeie a chave `flag` para `flags` em `lab.auto.tfvars` e leia o plano.
-   Por que ele destrói um e cria outro em vez de renomear? (O endereço no state mudou.)
+   Por que ele destrói e cria em vez de renomear? (O endereço no state mudou.) Por que a senha
+   também é afetada? Depois acrescente blocos `moved` em `main.tf` e compare o novo plano:
+   ```hcl
+   moved {
+     from = random_password.banco["flag"]
+     to   = random_password.banco["flags"]
+   }
+
+   moved {
+     from = module.servico["flag"]
+     to   = module.servico["flags"]
+   }
+   ```
 4. Rode `terraform console` e avalie: `local.prefixo`, `local.servicos_com_banco`,
-   `cidrsubnet("10.0.0.0/16", 4, 8)` (a função que calcula as subnets do projeto real).
+   `cidrsubnet("10.0.0.0/16", 4, 8)` (a função que calcula as subnets do projeto real),
+   `keys(var.servicos)`, `[for nome, s in var.servicos : "${nome}:${s.porta}"]` e
+   `module.servico["auth"].arquivo`.
+
+Uma resolução dos desafios 1 a 3 está no branch `lab/terraform-gabarito`
+(`git diff main lab/terraform-gabarito -- docs/terraform-lab`). Tente antes de olhar.
+
+Se salvar planos com `terraform plan -out`, use a extensão `.tfplan` (ignorada pelo Git): um plano
+salvo pode conter valores sensíveis.
 
 Para deixar a pasta limpa ao terminar:
 
