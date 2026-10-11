@@ -1,0 +1,5 @@
+servicos = {
+  auth      = { porta = 8001, usa_banco = true, versao = "1.0.0" }
+  flags     = { porta = 8002, usa_banco = true, versao = "2.0.0" }
+  analytics = { porta = 8005, usa_banco = false, versao = "1.0.0" }
+}

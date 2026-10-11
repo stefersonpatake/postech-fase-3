@@ -1,7 +1,7 @@
 # ─── locals: valores calculados, reutilizados no código ─────
 locals {
   prefixo = "${var.projeto}-${var.ambiente}"
-
+  qtde_servicos = length(module.servico)
   # Filtra só os serviços que usam banco (expressão "for" com condição).
   servicos_com_banco = { for nome, s in var.servicos : nome => s if s.usa_banco }
 }
@@ -32,8 +32,19 @@ module "servico" {
   prefixo   = local.prefixo
   porta     = each.value.porta
   usa_banco = each.value.usa_banco
+  versao    = each.value.versao
 
   # Referência a outro recurso: o Terraform entende que precisa ler o data source
   # antes de criar o módulo. Ninguém escreveu essa ordem: ela vem das referências.
   role = trimspace(data.local_file.role_existente.content)
+}
+
+moved {
+  from = random_password.banco["flag"]
+  to   = random_password.banco["flags"]
+}
+
+moved {
+  from = module.servico["flag"]
+  to   = module.servico["flags"]
 }

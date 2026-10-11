@@ -20,9 +20,10 @@ variable "servicos" {
   type = map(object({
     porta     = number
     usa_banco = bool
+    versao    = string
   }))
   default = {
-    auth = { porta = 8001, usa_banco = true }
-    flag = { porta = 8002, usa_banco = true }
+    auth = { porta = 8001, usa_banco = true, versao = "1.0.0" }
+    flag = { porta = 8002, usa_banco = true, versao = "1.0.0" }
   }
 }

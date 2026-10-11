@@ -10,5 +10,6 @@ resource "local_file" "config" {
     porta     = ${var.porta}
     usa_banco = ${var.usa_banco}
     role      = ${var.role}
+    versao    = ${var.versao}
   EOT
 }

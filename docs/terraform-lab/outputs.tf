@@ -18,3 +18,8 @@ output "senhas" {
   value       = { for nome, p in random_password.banco : nome => p.result }
   sensitive   = true
 }
+
+output "quantidade_de_servicos" {
+  description = "Número de serviços criados"
+  value       = local.qtde_servicos
+}

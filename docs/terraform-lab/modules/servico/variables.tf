@@ -20,3 +20,9 @@ variable "usa_banco" {
 variable "role" {
   type = string
 }
+
+variable "versao" {
+  description = "Versão dos serviços"
+  type        = string
+  default     = "1.0.0"
+}
