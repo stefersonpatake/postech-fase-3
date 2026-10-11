@@ -20,6 +20,7 @@
 set -euo pipefail
 
 PROJECT="${PROJECT:-togglemaster}"
+CLUSTER="${CLUSTER:-$PROJECT-eks}"
 SECRET_ID="$PROJECT/evaluation-service-api-key"
 FORCE=false
 [ "${1:-}" = "--force" ] && FORCE=true
@@ -31,6 +32,10 @@ if [ "$current" != "PENDENTE" ] && ! $FORCE; then
   echo "ℹ️  $SECRET_ID já tem uma chave. Use --force para emitir outra."
   exit 0
 fi
+
+# O endpoint do EKS muda a cada recriação do ambiente; sem isso o kubectl
+# continuaria apontando para o cluster antigo.
+aws eks update-kubeconfig --name "$CLUSTER" >/dev/null
 
 echo "⏳ Aguardando o auth-service ficar disponível..."
 kubectl rollout status deployment/auth-service -n auth --timeout=180s >/dev/null
