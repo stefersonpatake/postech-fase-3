@@ -83,10 +83,10 @@ def process_message(message):
         log.error(f"Erro ao decodificar JSON da mensagem ID: {message['MessageId']}")
         # Não deleta a mensagem, pode ser uma "poison pill"
     except ClientError as e:
-        log.error(f"Erro do Boto3 (DynamoDB ou SQS) ao processar {message['MessageId']}: {e}")
+        log.exception(f"Erro do Boto3 (DynamoDB ou SQS) ao processar {message['MessageId']}: {e}")
         # Não deleta a mensagem, tenta novamente
     except Exception as e:
-        log.error(f"Erro inesperado ao processar {message['MessageId']}: {e}")
+        log.exception(f"Erro inesperado ao processar {message['MessageId']}: {e}")
         # Não deleta a mensagem, tenta novamente
 
 def sqs_worker_loop():
@@ -112,17 +112,17 @@ def sqs_worker_loop():
                 process_message(message)
                 
         except ClientError as e:
-            log.error(f"Erro do Boto3 no loop principal do SQS: {e}")
+            log.exception(f"Erro do Boto3 no loop principal do SQS: {e}")
             time.sleep(10) # Pausa antes de tentar novamente
         except Exception as e:
-            log.error(f"Erro inesperado no loop principal do SQS: {e}")
+            log.exception(f"Erro inesperado no loop principal do SQS: {e}")
             time.sleep(10)
 
 # --- Servidor Flask (Apenas para Health Check) ---
 
 app = Flask(__name__)
 
-@app.route('/health')
+@app.route('/health', methods=['GET'])
 def health():
     # Uma verificação de saúde real poderia checar a conexão com o DynamoDB/SQS
     return jsonify({"status": "ok"})
