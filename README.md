@@ -27,20 +27,20 @@ Infraestrutura como código, pipelines DevSecOps e GitOps para os 5 microsservi�
         └───────────────┬────────────────┘
                         │ ArgoCD monitora gitops/ (ApplicationSet)
                         ▼
-  ┌──────────────────────── AWS (Terraform) ────────────────────────┐
-  │  VPC: 2 subnets públicas (ALB, NAT) + 2 privadas                │
-  │                                                                 │
-  │  Internet ─► ALB ─► EKS (3 nós, subnets privadas)               │
-  │                      ├─ auth-service ───────► RDS PostgreSQL    │
-  │                      ├─ flag-service ───────► RDS PostgreSQL    │
-  │                      ├─ targeting-service ──► RDS PostgreSQL    │
-  │                      ├─ evaluation-service ─► ElastiCache Redis │
-  │                      │                    └─► SQS ─┐            │
-  │                      └─ analytics-service ◄────────┘─► DynamoDB │
-  │                                                                 │
+  ┌──────────────────────── AWS (Terraform) ───────────────────────────┐
+  │  VPC: 2 subnets públicas (ALB, NAT) + 2 privadas                   │
+  │                                                                    │
+  │  Internet ─► ALB ─► EKS (3 nós, subnets privadas)                  │
+  │                      ├─ auth-service ───────► RDS PostgreSQL       │
+  │                      ├─ flag-service ───────► RDS PostgreSQL       │
+  │                      ├─ targeting-service ──► RDS PostgreSQL       │
+  │                      ├─ evaluation-service ─► ElastiCache Redis    │
+  │                      │                    └─► SQS ─┐               │
+  │                      └─ analytics-service ◄────────┘─► DynamoDB    │
+  │                                                                    │
   │  Plataforma no cluster: ArgoCD · External Secrets · ALB Controller │
-  │  Secrets Manager ─► External Secrets ─► Secret do Kubernetes    │
-  └─────────────────────────────────────────────────────────────────┘
+  │  Secrets Manager ─► External Secrets ─► Secret do Kubernetes       │
+  └────────────────────────────────────────────────────────────────────┘
 ```
 
 ## Estrutura
@@ -82,10 +82,18 @@ Lint ──────────────┘
 interrompe o pipeline; a imagem não é publicada. O pipeline roda em todo Pull Request e em push na
 `main`; a publicação e o GitOps só acontecem na `main`.
 
+
+
+
 ## Como subir o ambiente
 
-Pré-requisitos: `terraform` ≥ 1.10, `aws`, `kubectl`, `helm`, `gh`, credenciais do AWS Academy em
-`~/.aws/credentials` (detalhes em [docs/ETAPA-0.md](docs/ETAPA-0.md)).
+Pré-requisitos: 
+* `terraform` ≥ 1.10
+* `aws`
+* `kubectl`
+* `helm`
+* `gh`
+* Credenciais do AWS Academy em `~/.aws/credentials`.
 
 ```bash
 ./scripts/infra-up.sh                      # bucket de state + terraform/infra + terraform/platform (~20 min)
@@ -121,6 +129,9 @@ Desenvolvimento local, sem AWS: `docker compose up --build`.
 | Segredos | Senhas geradas pelo Terraform → Secrets Manager → External Secrets Operator. Nada sensível no Git |
 | GitOps | Pasta `gitops/` no monorepo, Kustomize, ArgoCD `ApplicationSet` (uma Application por pasta) com auto-sync, prune e self-heal |
 | Entrada | Um único ALB para os 5 serviços, com roteamento e reescrita por caminho |
+
+
+## Documentação
 
 O raciocínio completo, os problemas encontrados e como testar cada parte estão em:
 
