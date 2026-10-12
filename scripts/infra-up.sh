@@ -33,6 +33,7 @@ if ! $DRY_RUN; then
   "$TF_DIR/bootstrap/bootstrap.sh"
 fi
 
+unapplied=""
 for layer in "${LAYERS[@]}"; do
   echo; echo "━━━ $layer ━━━"
   if ! layer_has_code "$layer"; then
@@ -41,7 +42,14 @@ for layer in "${LAYERS[@]}"; do
   fi
   layer_init "$layer"
   if $DRY_RUN; then
+    # Cada camada lê os outputs da anterior pelo state remoto; se a anterior ainda
+    # não foi aplicada, o plan desta falharia com "Unsupported attribute".
+    if [ -n "$unapplied" ]; then
+      echo "⏭️  Plan indisponível: depende da camada '$unapplied', que ainda não foi aplicada."
+      continue
+    fi
     terraform -chdir="$TF_DIR/$layer" plan -input=false
+    [ "$(layer_resource_count "$layer")" -eq 0 ] && unapplied="$layer"
   else
     terraform -chdir="$TF_DIR/$layer" apply -input=false $AUTO_APPROVE
   fi
