@@ -86,6 +86,11 @@ for s in auth flag targeting evaluation analytics; do gh workflow run $s-service
 
 Na UI do ArgoCD (`kubectl -n argocd port-forward svc/argocd-server 8080:80`), a Application do
 serviço mostra o novo commit em *Last Sync* e os pods sendo substituídos.
+A senha vem do secret argocd-initial-admin-secret e é gerada de novo a cada recriação do cluster. Para buscá-la da próxima vez:
+
+```
+kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d; echo
+```
 
 ## Resultado da validação (2026-10-04)
 
