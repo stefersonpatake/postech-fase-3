@@ -46,7 +46,59 @@ cleanup_cluster_load_balancers() {
     echo "🧹 Removendo Ingress (o controller apaga os ALBs)..."
     kubectl delete ingress --all -A --timeout=300s || true
   fi
-  echo "✅ Nenhum Ingress restante."
+  if [ -n "$(kubectl get ingress -A --no-headers 2>/dev/null)" ]; then
+    echo "⚠️  Ainda há Ingress no cluster; as sobras serão removidas direto na AWS."
+  else
+    echo "✅ Nenhum Ingress restante."
+  fi
+}
+
+# Rede de segurança para o que o controller deixar para trás (ALBs e security
+# groups "k8s-*"): nada disso está no state, e qualquer sobra faz o DeleteVpc
+# falhar com DependencyViolation depois de ~20 min de retry. Roda depois que a
+# camada platform (e com ela o controller) já foi destruída, identificando os
+# recursos pela tag elbv2.k8s.aws/cluster.
+cleanup_orphan_lb_resources() {
+  local cluster="${PROJECT:-togglemaster}-eks"
+  local tag="elbv2.k8s.aws/cluster"
+  local arn sg ref rules found=false
+
+  for arn in $(aws elbv2 describe-load-balancers --query 'LoadBalancers[].LoadBalancerArn' --output text 2>/dev/null); do
+    [ "$(aws elbv2 describe-tags --resource-arns "$arn" \
+      --query "TagDescriptions[0].Tags[?Key=='$tag'].Value | [0]" --output text 2>/dev/null)" = "$cluster" ] || continue
+    $found || { echo; echo "━━━ limpeza de órfãos do load balancer controller ━━━"; found=true; }
+    echo "🧹 Removendo load balancer órfão: ${arn##*:loadbalancer/}"
+    aws elbv2 delete-load-balancer --load-balancer-arn "$arn"
+    aws elbv2 wait load-balancers-deleted --load-balancer-arns "$arn" || true
+  done
+
+  local sgs
+  sgs=$(aws ec2 describe-security-groups --filters "Name=tag:$tag,Values=$cluster" \
+    --query 'SecurityGroups[].GroupId' --output text 2>/dev/null)
+  [ -n "$sgs" ] || return 0
+  $found || { echo; echo "━━━ limpeza de órfãos do load balancer controller ━━━"; }
+
+  # Regras de outros SGs (nós/cluster) que apontam para os órfãos impedem a exclusão.
+  for sg in $sgs; do
+    for ref in $(aws ec2 describe-security-groups --filters "Name=ip-permission.group-id,Values=$sg" \
+      --query 'SecurityGroups[].GroupId' --output text); do
+      rules=$(aws ec2 describe-security-group-rules --filters "Name=group-id,Values=$ref" \
+        --query "SecurityGroupRules[?!IsEgress && ReferencedGroupInfo.GroupId=='$sg'].SecurityGroupRuleId" --output text)
+      [ -n "$rules" ] && aws ec2 revoke-security-group-ingress --group-id "$ref" \
+        --security-group-rule-ids $rules >/dev/null
+    done
+  done
+
+  # As ENIs de um ALB recém-apagado levam alguns segundos para serem liberadas.
+  local attempt
+  for sg in $sgs; do
+    echo "🧹 Removendo security group órfão: $sg"
+    for attempt in 1 2 3 4 5 6 7 8 9 10 11 12; do
+      aws ec2 delete-security-group --group-id "$sg" >/dev/null 2>&1 && continue 2
+      sleep 10
+    done
+    echo "⚠️  Não foi possível remover $sg; o destroy da VPC deve falhar."
+  done
 }
 
 $DRY_RUN || cleanup_cluster_load_balancers
@@ -66,6 +118,7 @@ for (( i=${#LAYERS[@]}-1; i>=0; i-- )); do
   if $DRY_RUN; then
     terraform -chdir="$TF_DIR/$layer" plan -destroy -input=false
   else
+    [ "$layer" = infra ] && cleanup_orphan_lb_resources
     terraform -chdir="$TF_DIR/$layer" destroy -input=false $AUTO_APPROVE
   fi
 done
