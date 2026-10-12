@@ -1,18 +1,20 @@
 # ToggleMaster — PosTech DevOps, Tech Challenge Fase 3
 
-Infraestrutura como código, pipelines DevSecOps e GitOps para os 5 microsserviços do ToggleMaster
-(plataforma de *feature flags*): `auth`, `flag`, `targeting`, `evaluation` e `analytics`.
+A DevOps Solutions Inc., aprovou a arquitetura de microsserviços da fase 2.
 
-> "Se não está no código, não existe."
+### Relatos
+- Desenvolvedores rodando `kubectl apply` em suas máquinas locais, gerando conflitos de versão;
+- Credenciais em arquivos de texto sem segurança;
+- Vulnerabilidades de bibliotecas em produção;
+- Ambiente de homologação levou dias para ser recriado à mão na AWS.
 
-## O que este repositório entrega
+### O que este desafio entrega
 
-| Requisito do desafio | Onde está |
+| Requisito | Onde está |
 |---|---|
-| **IaC (Terraform)**: VPC, EKS, 3 RDS, ElastiCache, DynamoDB, SQS, 5 ECR; state remoto em S3 com `use_lockfile` | [`terraform/`](terraform/) |
-| **CI & DevSecOps**: build, testes, lint, SCA, SAST, scan de imagem, push no ECR; bloqueio em vulnerabilidade crítica | [`.github/workflows/`](.github/workflows/) |
+| **IaC (Terraform)**: VPC, EKS, 3 RDS, ElastiCache, DynamoDB, SQS, 5 ECR; 2 buckets S3 com `use_lockfile=true` e criptografados | [`terraform/`](terraform/) |
+| **CI & DevSecOps (GitHub)**: build, testes, lint, SCA, SAST, scan de imagem, push no ECR; bloqueio em vulnerabilidade crítica | [`.github/workflows/`](.github/workflows/) |
 | **GitOps**: manifestos Kubernetes separados, ArgoCD com sync automático, CI atualizando a tag da imagem | [`gitops/`](gitops/), [`terraform/platform/`](terraform/platform/) |
-| Documentação passo a passo de cada etapa | [`docs/`](docs/) |
 
 ## Arquitetura
 
@@ -43,23 +45,6 @@ Infraestrutura como código, pipelines DevSecOps e GitOps para os 5 microsservi�
   └────────────────────────────────────────────────────────────────────┘
 ```
 
-## Estrutura
-
-```
-.
-├── auth-service/  evaluation-service/                    # Go
-├── flag-service/  targeting-service/  analytics-service/ # Python (Flask)
-├── terraform/
-│   ├── bootstrap/     # bootstrap.sh: bucket S3 do state
-│   ├── modules/       # network, eks, rds, elasticache, dynamodb, sqs, ecr, secrets
-│   ├── infra/         # camada 1: rede, cluster, dados, mensageria, repositórios, segredos
-│   └── platform/      # camada 2: ALB Controller, External Secrets, ArgoCD (Helm)
-├── gitops/apps/<serviço>/   # manifestos Kustomize; a tag da imagem fica em kustomization.yaml
-├── .github/workflows/       # _ci-go.yml, _ci-python.yml, <serviço>.yml, sonarcloud.yml
-├── scripts/                 # subir/derrubar ambiente, bootstrap e testes
-└── docs/                    # plano, passo a passo por etapa, roteiro da demo, relatório
-```
-
 ## Pipeline de cada microsserviço
 
 ```
@@ -67,7 +52,6 @@ Build & Unit Test ─┐
                    ├─► Security Scan ─► Docker Build, Scan & Push ─► GitOps (tag)
 Lint ──────────────┘
 ```
-
 | Estágio | Go | Python |
 |---|---|---|
 | Build & Unit Test | `go build`, `go test` | `pytest` |
@@ -77,12 +61,27 @@ Lint ──────────────┘
 | Container scan | Trivy `image` | Trivy `image` |
 | Publicação | ECR, tag `v1.0.0-<sha7>` | idem |
 | GitOps | commit da tag em `gitops/apps/<serviço>/kustomization.yaml` | idem |
-
 **Regra de bloqueio:** vulnerabilidade CRITICAL (Trivy) ou de severidade HIGH (gosec/bandit)
 interrompe o pipeline; a imagem não é publicada. O pipeline roda em todo Pull Request e em push na
 `main`; a publicação e o GitOps só acontecem na `main`.
 
 
+
+## Estrutura
+
+```
+Fase3/
+├── auth-service/  evaluation-service/                    # Go
+├── flag-service/  targeting-service/  analytics-service/ # Python (Flask)
+├── terraform/
+│   ├── bootstrap/     # bootstrap.sh: bucket S3 do state
+│   ├── modules/       # network, eks, rds, elasticache, dynamodb, sqs, ecr, secrets
+│   ├── infra/         # camada 1: rede, cluster, dados, mensageria, repositórios, segredos
+│   └── platform/      # camada 2: ALB Controller, External Secrets, ArgoCD (Helm)
+├── gitops/apps/<serviço>/   # manifestos Kustomize; a tag da imagem fica em kustomization.yaml
+├── .github/workflows/       # _ci-go.yml, _ci-python.yml, <serviço>.yml, sonarcloud.yml
+└── scripts/                 # subir/derrubar ambiente, bootstrap e testes
+```
 
 
 ## Como subir o ambiente
@@ -129,24 +128,3 @@ Desenvolvimento local, sem AWS: `docker compose up --build`.
 | Segredos | Senhas geradas pelo Terraform → Secrets Manager → External Secrets Operator. Nada sensível no Git |
 | GitOps | Pasta `gitops/` no monorepo, Kustomize, ArgoCD `ApplicationSet` (uma Application por pasta) com auto-sync, prune e self-heal |
 | Entrada | Um único ALB para os 5 serviços, com roteamento e reescrita por caminho |
-
-
-## Documentação
-
-O raciocínio completo, os problemas encontrados e como testar cada parte estão em:
-
-| Documento | Conteúdo |
-|---|---|
-| [docs/PLANO.md](docs/PLANO.md) | Plano, decisões de arquitetura e status das etapas |
-| [docs/ETAPA-0.md](docs/ETAPA-0.md) | Pré-requisitos |
-| [docs/ETAPA-1.md](docs/ETAPA-1.md) | Backend remoto do Terraform (e recuperação de lock) |
-| [docs/ETAPA-2.md](docs/ETAPA-2.md) | Rede e ECR; scripts de subir/derrubar |
-| [docs/ETAPA-3.md](docs/ETAPA-3.md) | EKS com LabRole |
-| [docs/ETAPA-4.md](docs/ETAPA-4.md) | RDS, Redis, DynamoDB, SQS e segredos |
-| [docs/ETAPA-5.md](docs/ETAPA-5.md) | ALB Controller, External Secrets e ArgoCD |
-| [docs/ETAPA-6.md](docs/ETAPA-6.md) | Manifestos GitOps e ApplicationSet |
-| [docs/ETAPA-7.md](docs/ETAPA-7.md) | Pipelines de CI DevSecOps |
-| [docs/ETAPA-8.md](docs/ETAPA-8.md) | CI atualizando a tag no GitOps |
-| [docs/ROTEIRO-DEMO.md](docs/ROTEIRO-DEMO.md) | Roteiro do vídeo de demonstração |
-| [docs/CUSTOS.md](docs/CUSTOS.md) | Estimativa de custos |
-| [docs/RELATORIO.md](docs/RELATORIO.md) | Relatório de entrega |
