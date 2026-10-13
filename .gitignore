@@ -17,3 +17,4 @@ __pycache__/
 
 # Relatórios de segurança gerados localmente
 *.sarif
+docs/
